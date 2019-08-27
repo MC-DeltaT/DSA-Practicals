@@ -1,5 +1,6 @@
+from math import floor, log2
 from operator import lt
-from typing import Any, Callable, Generator, Iterator, Tuple
+from typing import Any, Callable, Generator, Iterator, List, Tuple
 
 
 class DSABinarySearchTree:
@@ -16,6 +17,10 @@ class DSABinarySearchTree:
     def __init__(self, comparator: Callable[[Any, Any], bool] = lt) -> None:
         self._root = None
         self._comp = comparator
+
+    @property
+    def comparator(self) -> Callable[[Any, Any], bool]:
+        return self._comp
 
     def find(self, key: Any) -> Any:
         def _find(node) -> Any:
@@ -90,9 +95,6 @@ class DSABinarySearchTree:
 
         self._root = _delete(self._root)
 
-    def clear(self) -> None:
-        self._root = None
-
     def is_empty(self) -> bool:
         return self._root is None
 
@@ -129,11 +131,27 @@ class DSABinarySearchTree:
         return _height(self._root)
 
     def balance(self) -> float:
+        # Balance is evaluated by comparing how many nodes are missing from
+        # each level compared to the perfectly balanced tree of the same size.
+        # Gives a rough percentage of the nodes that can be found in log time.
+
+        def _balance(node, depths: List[int], cur_depth: int) -> None:
+            if node:
+                depths.append(cur_depth)
+                _balance(node.left, depths, cur_depth + 1)
+                _balance(node.right, depths, cur_depth + 1)
+
         if self.is_empty():
             res = 1.0
         else:
-            # Maximum approximation
-            res = len(self) / (2 ** self.height() - 1)
+            depths = []
+            _balance(self._root, depths, 1)
+            depths.sort()
+            size = len(depths)
+            ideal_height = floor(log2(size) + 1)
+            nodes_per_level = [depths.count(i + 1) for i in range(ideal_height)]
+            correct_nodes = sum(nodes_per_level)
+            res = correct_nodes / size
         return res
 
     def in_order(self) -> Iterator[Tuple[Any, Any]]:

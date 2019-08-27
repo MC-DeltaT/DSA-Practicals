@@ -1,11 +1,12 @@
 from dsa_tree import DSABinarySearchTree
 
+from operator import gt, lt
 import random
 from unittest import TestCase
 
 
 class DSABinarySearchTreeTest(TestCase):
-    test_size = 10
+    test_size = 500
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -13,6 +14,11 @@ class DSABinarySearchTreeTest(TestCase):
 
     def setUp(self) -> None:
         self._tree = DSABinarySearchTree()
+
+    def test_comparator(self) -> None:
+        self.assertIs(lt, self._tree.comparator)
+        tree2 = DSABinarySearchTree(gt)
+        self.assertIs(gt, tree2.comparator)
 
     def test_insert_find(self) -> None:
         for key in range(self.test_size):
@@ -116,7 +122,7 @@ class DSABinarySearchTreeTest(TestCase):
         with self.assertRaises(ValueError):
             self._tree.min_key()
 
-    def test_max(self) -> None:
+    def test_max_key(self) -> None:
         with self.assertRaises(ValueError):
             self._tree.max_key()
 
@@ -141,31 +147,102 @@ class DSABinarySearchTreeTest(TestCase):
 
         keys = random.sample(range(self.test_size), self.test_size)
         values = random.sample(range(self.test_size), self.test_size)
-        inserted_keys = []
-        inserted_values = []
+        inserted = []
         count = 0
         for key, value in zip(keys, values):
             self._tree.insert(key, value)
             count += 1
-            inserted_keys.append(key)
-            inserted_values.append(value)
-            sorted_keys, sorted_values = zip(*sorted(zip(inserted_keys, inserted_values)))
+            inserted.append((key, value))
             in_order = list(self._tree.in_order())
             self.assertEqual(count, len(in_order))
-            for j, (k, v) in enumerate(in_order):
-                self.assertEqual(sorted_keys[j], k)
-                self.assertEqual(sorted_values[j], v)
+            sorted_pairs = sorted(inserted, key=lambda p: p[0])
+            for i, (k, v) in enumerate(in_order):
+                self.assertEqual(sorted_pairs[i][0], k)
+                self.assertEqual(sorted_pairs[i][1], v)
 
-            # for i in random.sample(range(n), n):
-            #     sorted_keys, sorted_values = zip(*sorted(zip(keys, values)))
-            #     in_order = list(self._tree.in_order())
-            #     self.assertEqual(n, len(in_order))
-            #     for j, (key, value) in enumerate(in_order):
-            #         self.assertEqual(sorted_keys[j], key)
-            #         self.assertEqual(sorted_values[j], value)
-            #     self._tree.delete(keys[i])
-            #     del keys[i]
-            #     del values[i]
+        keys = random.sample(range(self.test_size), self.test_size)
+        for key in keys:
+            value = self._tree.find(key)
+            self._tree.delete(key)
+            count -= 1
+            inserted.remove((key, value))
+            in_order = list(self._tree.in_order())
+            self.assertEqual(count, len(in_order))
+            sorted_pairs = sorted(inserted, key=lambda p: p[0])
+            for i, (k, v) in enumerate(in_order):
+                self.assertEqual(sorted_pairs[i][0], k)
+                self.assertEqual(sorted_pairs[i][1], v)
+
+    def test_pre_order(self) -> None:
+        for _ in self._tree.pre_order():
+            self.fail()
+
+        keys = random.sample(range(self.test_size), self.test_size)
+        values = random.sample(range(self.test_size), self.test_size)
+        inserted = []
+        count = 0
+        for key, value in zip(keys, values):
+            self._tree.insert(key, value)
+            count += 1
+            inserted.append((key, value))
+            pre_order = list(self._tree.pre_order())
+            self.assertEqual(count, len(pre_order))
+            visited_keys = set()
+            visited_values = set()
+            for k, v in pre_order:
+                self.assertFalse(k in visited_keys)
+                self.assertFalse(v in visited_values)
+                visited_keys.add(k)
+                visited_values.add(v)
+            tree2 = DSABinarySearchTree(self._tree.comparator)
+            for k, v in pre_order:
+                tree2.insert(k, v)
+            self.assertEqual(pre_order, list(tree2.pre_order()))
+            self.assertEqual(list(self._tree.in_order()), list(tree2.in_order()))
+            del tree2
+
+        for key in random.sample(range(self.test_size), self.test_size):
+            value = self._tree.find(key)
+            self._tree.delete(key)
+            count -= 1
+            inserted.remove((key, value))
+            pre_order = list(self._tree.pre_order())
+            self.assertEqual(count, len(pre_order))
+            visited_keys = set()
+            visited_values = set()
+            for k, v in pre_order:
+                self.assertFalse(k in visited_keys)
+                self.assertFalse(v in visited_values)
+                visited_keys.add(k)
+                visited_values.add(v)
+            tree2 = DSABinarySearchTree(self._tree.comparator)
+            for k, v in pre_order:
+                tree2.insert(k, v)
+            self.assertEqual(pre_order, list(tree2.pre_order()))
+            self.assertEqual(list(self._tree.in_order()), list(tree2.in_order()))
+            del tree2
+
+    def test_post_order(self) -> None:
+        for _ in self._tree.post_order():
+            self.fail()
+
+        keys = random.sample(range(self.test_size), self.test_size)
+        values = random.sample(range(self.test_size), self.test_size)
+        inserted = []
+        count = 0
+        for key, value in zip(keys, values):
+            self._tree.insert(key, value)
+            count += 1
+            inserted.append((key, value))
+            post_order = list(self._tree.post_order())
+            self.assertEqual(count, len(post_order))
+            visited_keys = set()
+            visited_values = set()
+            for k, v in post_order:
+                self.assertFalse(k in visited_keys)
+                self.assertFalse(v in visited_values)
+                visited_keys.add(k)
+                visited_values.add(v)
 
     def test_len(self) -> None:
         size = 0
@@ -184,7 +261,14 @@ class DSABinarySearchTreeTest(TestCase):
 
     def test_balance(self) -> None:
         self.assertEqual(1.0, self._tree.balance())
-        for keys, balance in [([50], 1.0), ([40, 60], 1.0), ([30, 45, 55, 65], 1.0)]:
-            for key in keys:
-                self._tree.insert(key, key)
-            self.assertEqual(balance, self._tree.balance())
+        for key in [50, 40, 60, 30, 45, 55, 65, 70]:
+            self._tree.insert(key, key)
+            self.assertEqual(1.0, self._tree.balance())
+        for key in [75, 10, 80, 47]:
+            self._tree.insert(key, key)
+            self.assertTrue(0.0 < self._tree.balance() < 1.0)
+        for key in range(100, 150):
+            self._tree.insert(key, key)
+        for key in range(150, 150 + self.test_size):
+            self._tree.insert(key, key)
+            self.assertLessEqual(self._tree.balance(), 0.25)
