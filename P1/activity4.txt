@@ -1,0 +1,25 @@
+Sorting algorithm times (in seconds):
+
+Fully random array:
+array size:         500     1500    5000    15000
+bubbleSort          0.11    0.58    5.36    45.57
+insertionSort       0.08    0.47    4.20    35.15
+selectionSort       0.07    0.37    3.04    24.35
+
+Nearly sorted array:
+array size:         500     1500    5000    15000
+bubbleSort          0.03    0.28    3.05    26.41
+insertionSort       0.01    0.05    0.49    4.03
+selectionSort       0.03    0.25    2.69    23.54
+
+
+All the algorithms have O(n^2) worst case, as we see for the fully random
+arrays, as the size of the array increases by ~3x, the sort time increases by
+significantly more (around 9x).
+It's also clear that for nearly sorted arrays, insertion sort is the fastest
+of these three - however, for this particular case its time complexity was
+still quadratic, taking ~9x more time for ~3x increase in array size. Bubble
+sort is a bit faster here than for fully random arrays, due to the early-exit
+optimisation.
+Finally, selection sort takes about the same time for both fully random and
+nearly sorted arrays as expected, since it is always O(n^2).
