@@ -1,6 +1,14 @@
 from dsa_linked_list import DSALinkedList
+from dsa_queue import DSAQueue
+from dsa_stack import DSAStack
 
-from typing import Any, Optional
+from typing import Any, Iterator, Optional
+
+
+__all__ = [
+    "DSAGraph",
+    "DSAGraphVertex"
+]
 
 
 class DSAGraphVertex:
@@ -10,7 +18,7 @@ class DSAGraphVertex:
         self._adjacent: DSALinkedList = DSALinkedList()
         self.visited: bool = False
 
-    def add_edge(self, vertex) -> None:
+    def add_adjacent(self, vertex) -> None:
         if self.is_adjacent(vertex):
             raise ValueError(
                 "Vertex already has an adjacent vertex labelled `{}`."
@@ -29,6 +37,9 @@ class DSAGraphVertex:
         if self.value is not None:
             res = res + " value={}".format(self.value)
         return res
+
+    def __repr__(self) -> str:
+        return "DSAGraphVertex(label={}, value={})".format(self.label, self.value)
 
 
 class DSAGraph:
@@ -54,8 +65,8 @@ class DSAGraph:
     def add_edge(self, label1: Any, label2: Any) -> None:
         vertex1 = self.get_vertex(label1)
         vertex2 = self.get_vertex(label2)
-        vertex1.add_edge(vertex2)
-        vertex2.add_edge(vertex1)
+        vertex1.add_adjacent(vertex2)
+        vertex2.add_adjacent(vertex1)
 
     def get_adjacent(self, label: Any) -> DSALinkedList:
         return self.get_vertex(label).adjacent
@@ -69,11 +80,14 @@ class DSAGraph:
 
     @property
     def edge_count(self) -> int:
+        count = 0
         edges = set()
         for v1 in self._vertices:
             for v2 in v1.adjacent:
-                edges.add(frozenset((v1, v2)))
-        return len(edges)
+                # Use set so order is unimportant.
+                if frozenset((v1, v2)) not in edges:
+                    count += 1
+        return count
 
     def display_as_list(self) -> None:
         for v1 in self._vertices:
@@ -81,14 +95,47 @@ class DSAGraph:
             print(", ".join(map(lambda v: v.label, v1.adjacent)))
 
     def display_as_matrix(self) -> None:
-        labels = list(map(lambda v: v.label, self._vertices))
+        labels = [v.label for v in self._vertices]
         max_label_len = max(map(len, labels))
         print(" " * (max_label_len + 3), end="")
         # Print labels formatted left-aligned in columns.
         print(" ".join(["{:<{}}".format(label, max_label_len) for label in labels]))
         for v1 in self._vertices:
+            # Print label right-aligned in first column.
             print("{:>{}} : ".format(v1.label, max_label_len), end="")
             row = [int(v1.is_adjacent(v2)) for v2 in self._vertices]
             # Format cells left-aligned in columns.
             row = map(lambda cell: "{:<{}}".format(cell, max_label_len), row)
             print(" ".join(row))
+
+    def depth_first(self) -> Iterator[DSAGraphVertex]:
+        self._mark_nonvisited()
+        stack = DSAStack()
+        cur: DSAGraphVertex = self._vertices.peek_first()
+        cur.visited = True
+        stack.push(cur)
+        while not stack.is_empty():
+            for v in cur.adjacent:
+                if not v.visited:
+                    yield v
+                    v.visited = True
+                    stack.push(v)
+            v = stack.pop()
+
+    def breadth_first(self) -> Iterator[DSAGraphVertex]:
+        self._mark_nonvisited()
+        queue = DSAQueue()
+        cur: DSAGraphVertex = self._vertices.peek_first()
+        cur.visited = True
+        queue.enqueue(cur)
+        while not queue.is_empty():
+            cur = queue.dequeue()
+            for v in cur.adjacent:
+                if not v.visited:
+                    yield v
+                    v.visited = True
+                    queue.enqueue(v)
+
+    def _mark_nonvisited(self) -> None:
+        for v in self._vertices:
+            v.visited = False
