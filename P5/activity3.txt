@@ -7,7 +7,7 @@ Graph 1:
 
 Graph 2:
     Breadth-first:
-        A, B, C, D, E, F, H, G, I, J
+        A, B, C, D, E, F, G, I, H, J
 
     Depth-first:
-        A, B, E, D, F, C, I, H, G, J
+        A, B, C, D, E, F, H, G, I, J

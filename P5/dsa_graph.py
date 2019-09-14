@@ -74,6 +74,10 @@ class DSAGraph:
         return self.get_vertex(label1).is_adjacent(self.get_vertex(label2))
 
     @property
+    def is_empty(self) -> bool:
+        return self._vertices.is_empty()
+
+    @property
     def vertex_count(self) -> int:
         return len(self._vertices)
 
@@ -90,7 +94,7 @@ class DSAGraph:
                 print(", ".join(map(lambda v: str(v.label), v1.adjacent)))
 
     def display_as_matrix(self) -> None:
-        if self.vertex_count == 0:
+        if self.is_empty:
             print("<empty graph>")
         else:
             labels = [str(v.label) for v in self._vertices]
@@ -107,34 +111,34 @@ class DSAGraph:
                 print(" ".join(row))
 
     def depth_first(self) -> Iterator[DSAGraphVertex]:
-        self._mark_nonvisited()
-        stack = DSAStack()
-        v: DSAGraphVertex = self._vertices.peek_first()
-        yield v
-        v.visited = True
-        stack.push(v)
-        while not stack.is_empty():
-            for w in v.adjacent:
-                if not w.visited:
-                    yield w
-                    w.visited = True
-                    stack.push(w)
-            v = stack.pop()
+        if not self.is_empty:
+            self._mark_nonvisited()
+            stack = DSAStack()
+            cur: DSAGraphVertex = min(self._vertices, key=lambda v: v.label)
+            stack.push(cur)
+            while not stack.is_empty():
+                cur = stack.pop()
+                if not cur.visited:
+                    yield cur
+                    cur.visited = True
+                    for adjacent in sorted(cur.adjacent, key=lambda v: v.label, reverse=True):
+                        stack.push(adjacent)
 
     def breadth_first(self) -> Iterator[DSAGraphVertex]:
-        self._mark_nonvisited()
-        queue = DSAQueue()
-        v: DSAGraphVertex = self._vertices.peek_first()
-        yield v
-        v.visited = True
-        queue.enqueue(v)
-        while not queue.is_empty():
-            v = queue.dequeue()
-            for w in v.adjacent:
-                if not w.visited:
-                    yield w
-                    w.visited = True
-                    queue.enqueue(w)
+        if not self.is_empty:
+            self._mark_nonvisited()
+            queue = DSAQueue()
+            cur: DSAGraphVertex = min(self._vertices, key=lambda v: v.label)
+            yield cur
+            cur.visited = True
+            queue.enqueue(cur)
+            while not queue.is_empty():
+                cur = queue.dequeue()
+                for adjacent in sorted(cur.adjacent, key=lambda v: v.label):
+                    if not adjacent.visited:
+                        yield adjacent
+                        adjacent.visited = True
+                        queue.enqueue(adjacent)
 
     def _mark_nonvisited(self) -> None:
         for v in self._vertices:
