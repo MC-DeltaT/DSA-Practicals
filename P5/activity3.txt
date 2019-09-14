@@ -1,0 +1,13 @@
+Graph 1:
+    Breadth-first:
+        A, B, C, D, E, F, G
+
+    Depth-first:
+        A, B, E, F, D, C, G
+
+Graph 2:
+    Breadth-first:
+        A, B, C, D, E, F, H, G, I, J
+
+    Depth-first:
+        A, B, E, D, F, C, I, H, G, J

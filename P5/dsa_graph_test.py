@@ -1,7 +1,7 @@
 from dsa_graph import DSAGraph, DSAGraphVertex
 
 import random
-from typing import Any, Dict, FrozenSet, Sequence, Set, Tuple
+from typing import Any, Dict, Sequence, Set, Tuple
 import unittest
 
 
@@ -46,7 +46,7 @@ class DSAGraphVertexTest(unittest.TestCase):
 
 
 class DSAGraphTest(unittest.TestCase):
-    TEST_SIZE = 100
+    TEST_SIZE = 50
 
     def setUp(self) -> None:
         self._graph = DSAGraph()
@@ -80,29 +80,27 @@ class DSAGraphTest(unittest.TestCase):
             self._graph.add_vertex(l)
 
         # Generate edges.
-        edge_list: Set[FrozenSet[int]] = set()
+        edge_list: Set[Tuple[int, int]] = set()
         for l1 in labels:
             count = random.choice(range(len(labels)))
             for l2 in random.choices(labels, k=count):
                 if l1 != l2:
-                    edge_list.add(frozenset((l1, l2)))
+                    edge_list.add((l1, l2))
         adjacency_list: Dict[int, Set[int]] = {l: set() for l in labels}
         for e in edge_list:
-            l1, l2 = list(e)
+            l1, l2 = e
             adjacency_list[l1].add(l2)
-            adjacency_list[l2].add(l1)
         nonadjacency_list = {l: set(labels) - adj for l, adj in adjacency_list.items()}
 
         # Add edges.
         for e in edge_list:
-            l1, l2 = list(e)
+            l1, l2 = e
             self._graph.add_edge(l1, l2)
 
         # Assert edges make vertices adjacent.
         for e in edge_list:
-            l1, l2 = list(e)
+            l1, l2 = e
             self.assertTrue(self._graph.is_adjacent(l1, l2))
-            self.assertTrue(self._graph.is_adjacent(l2, l1))
 
         # Assert other vertices are not adjacent.
         for l1, nonadj in nonadjacency_list.items():
@@ -119,11 +117,9 @@ class DSAGraphTest(unittest.TestCase):
         tmp = list(edge_list)
         random.shuffle(tmp)
         for e in tmp:
-            l1, l2 = list(e)
+            l1, l2 = e
             with self.assertRaises(ValueError):
                 self._graph.add_edge(l1, l2)
-            with self.assertRaises(ValueError):
-                self._graph.add_edge(l2, l1)
 
     def test_vertex_count(self) -> None:
         labels = list(range(self.TEST_SIZE))
@@ -135,14 +131,14 @@ class DSAGraphTest(unittest.TestCase):
             self.assertEqual(n, self._graph.vertex_count)
 
         # Assert adding edges doesn't screw up vertex count.
-        edge_list: Set[FrozenSet[int]] = set()
+        edge_list: Set[Tuple[int, int]] = set()
         for l1 in labels:
             count = random.choice(range(len(labels)))
             for l2 in random.choices(labels, k=count):
                 if l1 != l2:
-                    edge_list.add(frozenset((l1, l2)))
+                    edge_list.add((l1, l2))
         for e in edge_list:
-            l1, l2 = list(e)
+            l1, l2 = e
             self._graph.add_edge(l1, l2)
         self.assertEqual(len(labels), self._graph.vertex_count)
 
@@ -156,17 +152,82 @@ class DSAGraphTest(unittest.TestCase):
             self.assertEqual(0, self._graph.edge_count)
 
         # Add edges.
-        edge_list: Set[FrozenSet[int]] = set()
+        edge_list: Set[Tuple[int, int]] = set()
         for l1 in labels:
             count = random.choice(range(len(labels)))
             for l2 in random.choices(labels, k=count):
                 if l1 != l2:
-                    edge_list.add(frozenset((l1, l2)))
+                    edge_list.add((l1, l2))
         for n, e in enumerate(edge_list, 1):
-            l1, l2 = list(e)
+            l1, l2 = e
             self._graph.add_edge(l1, l2)
             self.assertEqual(n, self._graph.edge_count)
 
+    def test_depth_first(self) -> None:
+        for label in "ABCDEFG":
+            self._graph.add_vertex(label)
 
-if __name__ == '__main__':
+        for l1, l2 in ["AB", "AC", "AD", "AE",
+                       "BA", "BE",
+                       "CA", "CD",
+                       "DA", "DC", "DF",
+                       "EA", "EB", "EF", "EG",
+                       "FD", "FE", "FG",
+                       "GE", "GF"]:
+            self._graph.add_edge(l1, l2)
+
+        depth_first = [v.label for v in self._graph.depth_first()]
+        expected = list("ABEFDCG")
+        self.assertListEqual(expected, depth_first)
+
+    def test_display_as_list(self) -> None:
+        self._graph.display_as_list()
+        print()
+
+        # Add vertices.
+        labels = list(range(min(15, self.TEST_SIZE)))
+        for l in labels:
+            self._graph.add_vertex(l)
+            self.assertEqual(0, self._graph.edge_count)
+
+        # Add edges.
+        edge_list: Set[Tuple[int, int]] = set()
+        for l1 in labels:
+            count = random.choice(range(len(labels)))
+            for l2 in random.choices(labels, k=count):
+                if l1 != l2:
+                    edge_list.add((l1, l2))
+        for n, e in enumerate(edge_list, 1):
+            l1, l2 = e
+            self._graph.add_edge(l1, l2)
+
+        self._graph.display_as_list()
+        print()
+
+    def test_display_as_matrix(self) -> None:
+        self._graph.display_as_matrix()
+        print()
+
+        # Add vertices.
+        labels = list(range(min(15, self.TEST_SIZE)))
+        for l in labels:
+            self._graph.add_vertex(l)
+            self.assertEqual(0, self._graph.edge_count)
+
+        # Add edges.
+        edge_list: Set[Tuple[int, int]] = set()
+        for l1 in labels:
+            count = random.choice(range(len(labels)))
+            for l2 in random.choices(labels, k=count):
+                if l1 != l2:
+                    edge_list.add((l1, l2))
+        for n, e in enumerate(edge_list, 1):
+            l1, l2 = e
+            self._graph.add_edge(l1, l2)
+
+        self._graph.display_as_matrix()
+        print()
+
+
+if __name__ == "__main__":
     unittest.main()
