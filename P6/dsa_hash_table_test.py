@@ -16,7 +16,7 @@ def random_string(max_size: int = 20) -> str:
 
 
 class DSAHashTableTest(unittest.TestCase):
-    TEST_SIZE = 2500
+    TEST_SIZE = 10000
 
     def setUp(self) -> None:
         self._hashtable = DSAHashTable(self.TEST_SIZE)
@@ -29,6 +29,23 @@ class DSAHashTableTest(unittest.TestCase):
         # Assert next prime from prime is correct.
         for x, y in [(2, 3), (3, 5), (5, 7), (7, 11), (11, 13), (13, 17), (17, 19)]:
             self.assertEqual(y, DSAHashTable._next_prime(x))
+
+        # Assert out-of-range numbers are handled correctly.
+        for x in range(-20, 2):
+            self.assertEqual(2, DSAHashTable._next_prime(x))
+
+    def test_prev_prime(self) -> None:
+        # Assert previous prime from non-prime is correct.
+        for x, y in [(4, 3), (6, 5), (8, 7), (9, 7), (10, 7), (12, 11), (14, 13), (15, 13), (16, 13), (18, 17), (19, 17)]:
+            self.assertEqual(y, DSAHashTable._prev_prime(x))
+
+        # Assert previous prime from prime is correct.
+        for x, y in [(2, 2), (3, 2), (5, 3), (7, 5), (11, 7), (13, 11), (17, 13), (19, 17)]:
+            self.assertEqual(y, DSAHashTable._prev_prime(x))
+
+        # Assert out-of-range numbers are handled correctly.
+        for x in range(-20, 2):
+            self.assertEqual(2, DSAHashTable._next_prime(x))
 
     def test_put_get_has(self) -> None:
         keys = self.unique_keys(self.TEST_SIZE)
@@ -89,7 +106,7 @@ class DSAHashTableTest(unittest.TestCase):
             with self.assertRaises(KeyError):
                 self._hashtable.get(key)
 
-        # Assert entries stayed removed while removing others.
+        # Assert entries stayed removed after internal resize occurs.
         random.shuffle(keys)
         for key in keys:
             self.assertFalse(self._hashtable.has(key))
@@ -116,5 +133,5 @@ class DSAHashTableTest(unittest.TestCase):
         return keys
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
