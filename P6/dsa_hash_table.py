@@ -107,7 +107,8 @@ class DSAHashTable:
             if entry.state == self._Entry.USED:
                 yield entry.key, entry.value
 
-    # Inserts a key, value pair into the array and increments _used.
+    # Inserts a key, value pair into the array, or updates an existing key's value.
+    # If the key is new, increments _used.
     # The array must have at least one free entry.
     def _put(self, key: str, value: Any) -> None:
         # Algorithm assumes array never becomes 100% full.
@@ -122,11 +123,11 @@ class DSAHashTable:
                 if free:
                     entry.key = key
                     entry.state = DSAHashTable._Entry.USED
+                    self._used += 1
                 entry.value = value
                 done = True
             else:
                 idx = (idx + step) % self.capacity
-        self._used += 1
 
     # Gets the entry object with the given key, or raises KeyError if there is no such key.
     def _get(self, key: str) -> _Entry:
