@@ -4,14 +4,22 @@ from typing import Any, MutableSequence
 import numpy
 
 
+__all__ = [
+    "DSAHeap",
+    "DSAHeapEntry",
+    "heapify",
+    "heapsort"
+]
+
+
 @total_ordering
-class HeapEntry:
+class DSAHeapEntry:
     def __init__(self, obj: Any, priority: int) -> None:
         self.obj = obj
         self.priority = priority
 
     def __lt__(self, other) -> bool:
-        return isinstance(other, HeapEntry) and self.priority < other.priority
+        return isinstance(other, DSAHeapEntry) and self.priority < other.priority
 
 
 class DSAHeap:
@@ -44,7 +52,6 @@ class DSAHeap:
 
 
 def _parent_index(node: int) -> int:
-    assert node > 0
     return (node - 1) // 2
 
 
@@ -97,10 +104,13 @@ def _trickle_up(seq: MutableSequence, start: int = 0, stop: int = None) -> None:
 
 # Reorders a sequence in place such that it forms a max heap.
 def heapify(seq: MutableSequence) -> None:
-    for i in reversed(range(len(seq))):
+    for i in reversed(range(len(seq) // 2 - 1)):
         _trickle_down(seq, i)
 
 
 # Sorts a sequence in place.
 def heapsort(seq: MutableSequence) -> None:
     heapify(seq)
+    for i in reversed(range(1, len(seq) - 1)):
+        seq[0], seq[i] = seq[i], seq[0]
+        _trickle_down(seq, 0, i)
