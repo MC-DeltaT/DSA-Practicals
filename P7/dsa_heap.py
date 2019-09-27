@@ -6,20 +6,24 @@ import numpy
 
 __all__ = [
     "DSAHeap",
-    "DSAHeapEntry",
+    "HeapEntry",
     "heapify",
     "heapsort"
 ]
 
 
 @total_ordering
-class DSAHeapEntry:
-    def __init__(self, obj: Any, priority: int) -> None:
+class HeapEntry:
+    # priority must support ordering via the < operator.
+    def __init__(self, obj: Any, priority) -> None:
         self.obj = obj
         self.priority = priority
 
     def __lt__(self, other) -> bool:
-        return isinstance(other, DSAHeapEntry) and self.priority < other.priority
+        return isinstance(other, HeapEntry) and self.priority < other.priority
+
+    def __repr__(self) -> str:
+        return f"priority={self.priority}, obj={self.obj}"
 
 
 class DSAHeap:
@@ -38,17 +42,30 @@ class DSAHeap:
         return self._array.size
 
     @property
+    def is_empty(self) -> bool:
+        return self.size == 0
+
+    @property
     def is_full(self) -> bool:
         return self.size == self.capacity
 
-    def add(self, obj: Any, priority: int) -> None:
+    def add(self, obj: Any, priority) -> None:
         if self.is_full:
             raise ValueError("Heap is full.")
-        # TODO
+        self._array[self._size] = HeapEntry(obj, priority)
+        self._size += 1
+        _trickle_up(self._array, 0, self._size)
 
     def remove(self) -> Any:
-        # TODO
-        ...
+        if self.is_empty:
+            raise ValueError("Heap is empty.")
+        res = self._array[0].obj
+
+        self._size -= 1
+        self._array[0] = self._array[self._size]
+        self._array[self._size] = None
+        _trickle_down(self._array, 0, self._size)
+        return res
 
 
 def _parent_index(node: int) -> int:
@@ -90,7 +107,6 @@ def _trickle_down(seq: MutableSequence, start: int = 0, stop: int = None) -> Non
 def _trickle_up(seq: MutableSequence, start: int = 0, stop: int = None) -> None:
     def __trickle_up(seq: MutableSequence, start: int, stop: int) -> None:
         assert start >= 0
-        assert stop >= 0
         parent = _parent_index(stop)
         if parent >= start:
             if seq[parent] < seq[stop]:
@@ -104,13 +120,14 @@ def _trickle_up(seq: MutableSequence, start: int = 0, stop: int = None) -> None:
 
 # Reorders a sequence in place such that it forms a max heap.
 def heapify(seq: MutableSequence) -> None:
-    for i in reversed(range(len(seq) // 2 - 1)):
+    # Start at last non-leaf node (leaves will always get heapified anyway).
+    for i in reversed(range(len(seq) // 2)):
         _trickle_down(seq, i)
 
 
 # Sorts a sequence in place.
 def heapsort(seq: MutableSequence) -> None:
     heapify(seq)
-    for i in reversed(range(1, len(seq) - 1)):
+    for i in reversed(range(1, len(seq))):
         seq[0], seq[i] = seq[i], seq[0]
         _trickle_down(seq, 0, i)
