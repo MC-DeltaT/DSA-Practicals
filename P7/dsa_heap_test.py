@@ -1,8 +1,9 @@
 from dsa_heap import DSAHeap, _trickle_down, _trickle_up, heapify, heapsort
 
+from collections import defaultdict
 from itertools import takewhile
 import random
-from typing import Sequence
+from typing import DefaultDict, List, Sequence
 import unittest
 
 
@@ -169,14 +170,14 @@ class DSAHeapToolsTest(unittest.TestCase):
         self.assertListEqual(expected, array)
 
     def test_heapify_4(self) -> None:
-        # Automated random test cases.
+        # Random data of varying size.
         for n in range(self.TEST_SIZE):
             array = random.choices(range(self.TEST_SIZE), k=n)
             heapify(array)
             self.assertTrue(self._is_heap(array))
 
     def test_heapsort_1(self) -> None:
-        # Automated random test cases.
+        # Random data of varying size.
         for n in range(self.TEST_SIZE):
             array = random.choices(range(self.TEST_SIZE), k=n)
             heapsort(array)
@@ -198,7 +199,7 @@ class DSAHeapToolsTest(unittest.TestCase):
         self.assertListEqual(expected, array)
 
     def test_heapsort_3(self) -> None:
-        # Random but already sorted data.
+        # Random but already sorted data of varying size.
         for n in range(self.TEST_SIZE):
             array = random.choices(range(self.TEST_SIZE), k=n)
             array = sorted(array)
@@ -215,22 +216,70 @@ class DSAHeapToolsTest(unittest.TestCase):
 
 
 class DSAHeapTest(unittest.TestCase):
-    TEST_SIZE = 10
+    TEST_SIZE = 10000
 
     def setUp(self) -> None:
         self._heap = DSAHeap(self.TEST_SIZE)
 
     def test_add_remove(self) -> None:
         priorities = random.choices(range(self.TEST_SIZE), k=self.TEST_SIZE)
-        values = random.choices(range(self.TEST_SIZE), k=self.TEST_SIZE)
-        for p, v in zip(priorities, values):
+        values: DefaultDict[int, List[int]] = defaultdict(list)
+        for p in priorities:
+            values[p].append(random.randrange(self.TEST_SIZE))
+        for p, vs in values.items():
+            for v in vs:
+                self._heap.add(v, p)
+
+        priorities = sorted(priorities, reverse=True)
+        for p in priorities:
+            self.assertIn(self._heap.remove(), values[p])
+
+    def test_size(self) -> None:
+        size = 0
+        self.assertEqual(size, self._heap.size)
+
+        # Assert size follows adds.
+        for i in range(self.TEST_SIZE):
+            p = random.randrange(self.TEST_SIZE)
+            v = random.randrange(self.TEST_SIZE)
+            self._heap.add(v, p)
+            size += 1
+            self.assertEqual(size, self._heap.size)
+
+        # Assert size follows remove.
+        for i in range(self.TEST_SIZE):
+            self._heap.remove()
+            size -= 1
+            self.assertEqual(size, self._heap.size)
+
+    def test_is_empty(self) -> None:
+        self.assertTrue(self._heap.is_empty)
+
+        for i in range(self.TEST_SIZE):
+            p = random.randrange(self.TEST_SIZE)
+            v = random.randrange(self.TEST_SIZE)
+            self._heap.add(v, p)
+            self.assertFalse(self._heap.is_empty)
+
+        for i in range(self.TEST_SIZE):
+            self.assertFalse(self._heap.is_empty)
+            self._heap.remove()
+
+        self.assertTrue(self._heap.is_empty)
+
+    def test_is_full(self) -> None:
+        for i in range(self.TEST_SIZE):
+            p = random.randrange(self.TEST_SIZE)
+            v = random.randrange(self.TEST_SIZE)
+            self.assertFalse(self._heap.is_full)
             self._heap.add(v, p)
 
-        # TODO: handle case where multiple values have the same priority (ordering not guaranteed).
-        priorities, values = zip(*sorted(zip(priorities, values), key=lambda t: t[0], reverse=True))
-        for v in values:
-            self.assertEqual(v, self._heap.remove())
+        self.assertTrue(self._heap.is_full)
+
+        for i in range(self.TEST_SIZE):
+            self._heap.remove()
+            self.assertFalse(self._heap.is_full)
 
 
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(verbosity=2)
