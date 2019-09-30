@@ -1,3 +1,11 @@
+# I've structured the heap implementation slightly differently to the layout in
+# the prac worksheet.
+# Most of the heap operations can work on any sequence type, so they're
+# implemented as free functions instead.
+# Same with heapsort, which doesn't really make sense to be an instance method
+# of the heap class.
+
+
 from functools import total_ordering
 from typing import Any, MutableSequence
 
@@ -68,6 +76,21 @@ class DSAHeap:
         return res
 
 
+# Reorders a sequence in place such that it forms a max heap.
+def heapify(seq: MutableSequence) -> None:
+    # Start at last non-leaf node (leaves will always get heapified anyway).
+    for i in reversed(range(len(seq) // 2)):
+        _trickle_down(seq, i)
+
+
+# Sorts a sequence in place.
+def heapsort(seq: MutableSequence) -> None:
+    heapify(seq)
+    for i in reversed(range(1, len(seq))):
+        seq[0], seq[i] = seq[i], seq[0]
+        _trickle_down(seq, 0, i)
+
+
 def _parent_index(node: int) -> int:
     return (node - 1) // 2
 
@@ -116,18 +139,3 @@ def _trickle_up(seq: MutableSequence, start: int = 0, stop: int = None) -> None:
     if stop is None:
         stop = len(seq)
     __trickle_up(seq, start, stop - 1)
-
-
-# Reorders a sequence in place such that it forms a max heap.
-def heapify(seq: MutableSequence) -> None:
-    # Start at last non-leaf node (leaves will always get heapified anyway).
-    for i in reversed(range(len(seq) // 2)):
-        _trickle_down(seq, i)
-
-
-# Sorts a sequence in place.
-def heapsort(seq: MutableSequence) -> None:
-    heapify(seq)
-    for i in reversed(range(1, len(seq))):
-        seq[0], seq[i] = seq[i], seq[0]
-        _trickle_down(seq, 0, i)
