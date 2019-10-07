@@ -1,10 +1,25 @@
-from network import SocialNetwork
+from network import Person, Post, SocialNetwork
 
 import random
 
 
 # TODO: documentation.
 def evolve_network(network: SocialNetwork, like_chance: float, follow_chance: float) -> None:
+    def interact(person: Person, post: Post) -> None:
+        if random.random() < like_chance:
+            try:
+                person.like_post(post)
+            except ValueError:
+                # Ignore if the post has already been liked.
+                pass
+            else:
+                if random.random() < follow_chance:
+                    try:
+                        person.follow(post.poster)
+                    except ValueError:
+                        # Ignore if poster is already being followed.
+                        pass
+
     if not 0 <= like_chance <= 1.0:
         raise ValueError(f"like_chance must be in the range [0, 1], but got {like_chance}.")
     if not 0 <= follow_chance <= 1.0:
@@ -12,34 +27,8 @@ def evolve_network(network: SocialNetwork, like_chance: float, follow_chance: fl
 
     for person in network.people:
         for following in person.following:
-            # Possibility to like post made by following.
             for post in following.posts:
-                r = random.random()
-                if r < like_chance:
-                    try:
-                        person.like_post(post.id)
-                    except ValueError:
-                        # Ignore if the post has already been liked.
-                        pass
-                    else:
-                        try:
-                            person.follow(post.poster)
-                        except ValueError:
-                            # Ignore if poster is already being followed.
-                            pass
+                interact(person, post)
 
-            # Possibility to like post liked by following.
             for post in following.liked_posts:
-                r = random.random()
-                if r < like_chance:
-                    try:
-                        person.like_post(post.id)
-                    except ValueError:
-                        # Ignore if the post has already been liked.
-                        pass
-                    else:
-                        try:
-                            person.follow(post.poster)
-                        except ValueError:
-                            # Ignore if poster is already being followed.
-                            pass
+                interact(person, post)
