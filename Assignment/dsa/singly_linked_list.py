@@ -1,6 +1,11 @@
 from typing import Any, Iterable, Iterator, Optional
 
 
+__all__ = [
+    "SinglyLinkedList"
+]
+
+
 # Singly-linked, double-ended linked list.
 class SinglyLinkedList:
     class _Node:
@@ -18,7 +23,7 @@ class SinglyLinkedList:
         def __next__(self) -> Any:
             if self._node is None:
                 raise StopIteration()
-            tmp = self._node.obj
+            tmp = self._node.data
             self._node = self._node.next
             return tmp
 
@@ -83,6 +88,9 @@ class SinglyLinkedList:
 
     def __iter__(self) -> Iterator[Any]:
         return self._Iterator(self._head)
+
+    def __repr__(self) -> str:
+        return "[" + ", ".join(map(repr, self)) + "]"
 
     def _raise_for_empty(self) -> None:
         if self.is_empty:

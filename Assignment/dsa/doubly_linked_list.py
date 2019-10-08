@@ -12,9 +12,9 @@ __all__ = [
 # Doubly-linked, double-ended linked list.
 class DoublyLinkedList:
     class _Node:
-        def __init__(self, obj: Any, prev: Optional["DoublyLinkedList._Node"] = None,
+        def __init__(self, data: Any, prev: Optional["DoublyLinkedList._Node"] = None,
                      next: Optional["DoublyLinkedList._Node"] = None) -> None:
-            self.obj = obj
+            self.data = data
             self.prev = prev
             self.next = next
 
@@ -28,7 +28,7 @@ class DoublyLinkedList:
         def __next__(self) -> Any:
             if self._node is None:
                 raise StopIteration()
-            tmp = self._node.obj
+            tmp = self._node.data
             self._node = self._node.next
             return tmp
 
@@ -42,7 +42,7 @@ class DoublyLinkedList:
         def __next__(self) -> Any:
             if self._node is None:
                 raise StopIteration()
-            tmp = self._node.obj
+            tmp = self._node.data
             self._node = self._node.prev
             return tmp
 
@@ -58,22 +58,22 @@ class DoublyLinkedList:
     def is_empty(self) -> bool:
         return len(self) == 0
 
-    def insert_first(self, obj: Any) -> None:
+    def insert_first(self, item: Any) -> None:
         if self.is_empty:
-            self._head = self._Node(obj)
+            self._head = self._Node(item)
             self._tail = self._head
         else:
             old_head = self._head
-            self._head = self._Node(obj, next=old_head)
+            self._head = self._Node(item, next=old_head)
             old_head.prev = self._head
         self._size += 1
 
-    def insert_last(self, obj: Any) -> None:
+    def insert_last(self, item: Any) -> None:
         if self.is_empty:
-            self.insert_first(obj)
+            self.insert_first(item)
         else:
             old_tail = self._tail
-            self._tail = self._Node(obj, prev=old_tail)
+            self._tail = self._Node(item, prev=old_tail)
             old_tail.next = self._tail
             self._size += 1
 
@@ -104,7 +104,7 @@ class DoublyLinkedList:
         removed = False
         node = self._head
         while node and not removed:
-            if node.obj == item:
+            if node.data == item:
                 if node.prev:
                     node.prev.next = node.next
                 else:
@@ -122,11 +122,11 @@ class DoublyLinkedList:
 
     def peek_first(self) -> Any:
         self._raise_for_empty()
-        return self._head.obj
+        return self._head.data
 
     def peek_last(self) -> Any:
         self._raise_for_empty()
-        return self._tail.obj
+        return self._tail.data
 
     def copy(self):
         return DoublyLinkedList(self)
@@ -139,6 +139,9 @@ class DoublyLinkedList:
 
     def __reversed__(self) -> Iterator[Any]:
         return self._ReverseIterator(self._tail)
+
+    def __repr__(self) -> str:
+        return "[" + ", ".join(map(repr, self)) + "]"
 
     def _raise_for_empty(self) -> None:
         if self.is_empty:

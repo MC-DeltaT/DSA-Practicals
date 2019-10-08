@@ -1,7 +1,7 @@
 # Sourced from my Data Structures & Algorithms practical worksheet 3 submission,
 # with modifications.
 
-from dsa import LinkedList
+from dsa import DoublyLinkedList
 
 import pickle
 from unittest import TestCase
@@ -11,11 +11,11 @@ class LinkedListTest(TestCase):
     TEST_SIZE = 300
 
     def setUp(self) -> None:
-        self._list = LinkedList()
+        self._list = DoublyLinkedList()
 
     def test_init(self) -> None:
         data = list(range(self.TEST_SIZE))
-        l = LinkedList(data)
+        l = DoublyLinkedList(data)
         self.assertListEqual(data, list(l))
 
     def test_insert_first(self) -> None:
