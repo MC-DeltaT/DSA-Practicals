@@ -5,22 +5,24 @@ from typing import Any, Iterable, Iterator, Optional
 
 
 __all__ = [
-    "LinkedList"
+    "DoublyLinkedList"
 ]
 
 
-class LinkedList:
-    class _ListNode:
-        def __init__(self, obj: Any, prev=None, next=None) -> None:
+# Doubly-linked, double-ended linked list.
+class DoublyLinkedList:
+    class _Node:
+        def __init__(self, obj: Any, prev: Optional["DoublyLinkedList._Node"] = None,
+                     next: Optional["DoublyLinkedList._Node"] = None) -> None:
             self.obj = obj
             self.prev = prev
             self.next = next
 
-    class _ListIterator:
-        def __init__(self, node) -> None:
+    class _Iterator:
+        def __init__(self, node: "DoublyLinkedList._Node") -> None:
             self._node = node
 
-        def __iter__(self):
+        def __iter__(self) -> "DoublyLinkedList._Iterator":
             return self
 
         def __next__(self) -> Any:
@@ -30,11 +32,11 @@ class LinkedList:
             self._node = self._node.next
             return tmp
 
-    class _ListReverseIterator:
-        def __init__(self, node) -> None:
+    class _ReverseIterator:
+        def __init__(self, node: "DoublyLinkedList._Node") -> None:
             self._node = node
 
-        def __iter__(self):
+        def __iter__(self) -> "DoublyLinkedList._ReverseIterator":
             return self
 
         def __next__(self) -> Any:
@@ -44,13 +46,13 @@ class LinkedList:
             self._node = self._node.prev
             return tmp
 
-    def __init__(self, iterable: Optional[Iterable] = None) -> None:
-        self._head = None
-        self._tail = None
+    def __init__(self, items: Optional[Iterable] = None) -> None:
+        self._head: Optional["DoublyLinkedList._Node"] = None
+        self._tail: Optional["DoublyLinkedList._Node"] = None
         self._size = 0
-        if iterable:
-            for e in iterable:
-                self.insert_last(e)
+        if items:
+            for item in items:
+                self.insert_last(item)
 
     @property
     def is_empty(self) -> bool:
@@ -58,11 +60,11 @@ class LinkedList:
 
     def insert_first(self, obj: Any) -> None:
         if self.is_empty:
-            self._head = self._ListNode(obj)
+            self._head = self._Node(obj)
             self._tail = self._head
         else:
             old_head = self._head
-            self._head = self._ListNode(obj, next=old_head)
+            self._head = self._Node(obj, next=old_head)
             old_head.prev = self._head
         self._size += 1
 
@@ -71,7 +73,7 @@ class LinkedList:
             self.insert_first(obj)
         else:
             old_tail = self._tail
-            self._tail = self._ListNode(obj, prev=old_tail)
+            self._tail = self._Node(obj, prev=old_tail)
             old_tail.next = self._tail
             self._size += 1
 
@@ -98,6 +100,26 @@ class LinkedList:
         self._tail = None
         self._size = 0
 
+    def remove(self, item: Any) -> None:
+        removed = False
+        node = self._head
+        while node and not removed:
+            if node.obj == item:
+                if node.prev:
+                    node.prev.next = node.next
+                else:
+                    self._head = node.next
+                if node.next:
+                    node.next.prev = node.prev
+                else:
+                    self._tail = node.prev
+                self._size -= 1
+                removed = True
+            else:
+                node = node.next
+        if not removed:
+            raise ValueError(f"Item `{item}` does not exist in list.")
+
     def peek_first(self) -> Any:
         self._raise_for_empty()
         return self._head.obj
@@ -107,19 +129,16 @@ class LinkedList:
         return self._tail.obj
 
     def copy(self):
-        return LinkedList(self)
+        return DoublyLinkedList(self)
 
     def __len__(self) -> int:
         return self._size
 
     def __iter__(self) -> Iterator[Any]:
-        return self._ListIterator(self._head)
+        return self._Iterator(self._head)
 
     def __reversed__(self) -> Iterator[Any]:
-        return self._ListReverseIterator(self._tail)
-
-    def __contains__(self, item: Any) -> bool:
-        return any(map(lambda e: e == item, self))
+        return self._ReverseIterator(self._tail)
 
     def _raise_for_empty(self) -> None:
         if self.is_empty:
