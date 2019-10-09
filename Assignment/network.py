@@ -1,4 +1,5 @@
-from dsa import Set, SinglyLinkedList
+from common import hash_str
+from dsa import OrderedSet, Set, SinglyLinkedList
 
 from itertools import chain
 from typing import Iterator
@@ -17,7 +18,7 @@ class Person:
         self._posts = SinglyLinkedList()
         self._followers = Set()
         self._following = Set()
-        self._liked_posts = Set()
+        self._liked_posts = OrderedSet(100)
         self._next_post_id = 1
 
     @property
@@ -71,7 +72,7 @@ class Person:
         person._followers.add(self)
 
     def like_post(self, post: "Post") -> None:
-        if not self._liked_posts.add(post):
+        if not self._liked_posts.add_first(post):
             raise ValueError(f"{self} already likes {post}.")
         post._like(self)
 
@@ -88,7 +89,7 @@ class Person:
         return isinstance(other, Person) and other._name == self._name
 
     def __hash__(self) -> int:
-        return hash(self._name)
+        return hash_str(self._name)
 
     def __repr__(self) -> str:
         return f"Person(name={self._name})"
@@ -133,7 +134,7 @@ class Post:
         return isinstance(other, Post) and other._poster == self._poster and other._id == self._id
 
     def __hash__(self) -> int:
-        return hash((self._poster, self._id))
+        return hash(self._poster) * self._id
 
     def __repr__(self) -> str:
         return f"Post(poster={self._poster}, id={self._id}, text={self._text})"
@@ -144,7 +145,7 @@ class Post:
 
 class SocialNetwork:
     def __init__(self) -> None:
-        self._people = Set()
+        self._people = SinglyLinkedList()
 
     @property
     def people(self) -> Iterator[Person]:
@@ -156,5 +157,5 @@ class SocialNetwork:
 
     def add_person(self, name) -> Person:
         person = Person(name)
-        self._people.add(person)
+        self._people.insert_last(person)
         return person

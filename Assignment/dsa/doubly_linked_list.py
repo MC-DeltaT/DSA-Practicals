@@ -18,34 +18,6 @@ class DoublyLinkedList:
             self.prev = prev
             self.next = next
 
-    class _Iterator:
-        def __init__(self, node: "DoublyLinkedList._Node") -> None:
-            self._node = node
-
-        def __iter__(self) -> "DoublyLinkedList._Iterator":
-            return self
-
-        def __next__(self) -> Any:
-            if self._node is None:
-                raise StopIteration()
-            tmp = self._node.data
-            self._node = self._node.next
-            return tmp
-
-    class _ReverseIterator:
-        def __init__(self, node: "DoublyLinkedList._Node") -> None:
-            self._node = node
-
-        def __iter__(self) -> "DoublyLinkedList._ReverseIterator":
-            return self
-
-        def __next__(self) -> Any:
-            if self._node is None:
-                raise StopIteration()
-            tmp = self._node.data
-            self._node = self._node.prev
-            return tmp
-
     def __init__(self, items: Optional[Iterable] = None) -> None:
         self._head: Optional["DoublyLinkedList._Node"] = None
         self._tail: Optional["DoublyLinkedList._Node"] = None
@@ -135,10 +107,16 @@ class DoublyLinkedList:
         return self._size
 
     def __iter__(self) -> Iterator[Any]:
-        return self._Iterator(self._head)
+        node = self._head
+        while node is not None:
+            yield node.data
+            node = node.next
 
     def __reversed__(self) -> Iterator[Any]:
-        return self._ReverseIterator(self._tail)
+        node = self._head
+        while node is not None:
+            yield node.data
+            node = node.prev
 
     def __repr__(self) -> str:
         return "[" + ", ".join(map(repr, self)) + "]"

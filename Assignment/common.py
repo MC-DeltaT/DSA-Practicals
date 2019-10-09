@@ -13,3 +13,10 @@ class NormalDistribution:
 
     def __call__(self) -> float:
         return random.normalvariate(self._mean, self._std)
+
+
+def hash_str(s: str):
+    res = 0
+    for c in s:
+        res = 33 * res + ord(c)
+    return res
