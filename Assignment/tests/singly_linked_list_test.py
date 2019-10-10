@@ -1,22 +1,24 @@
 # Sourced from my Data Structures & Algorithms practical worksheet 3 submission,
 # with modifications.
 
-from dsa import DoublyLinkedList
+from dsa import SinglyLinkedList
 
 import pickle
+import random
 from unittest import TestCase
 
 
-class LinkedListTest(TestCase):
+class DoublyLinkedListTest(TestCase):
     TEST_SIZE = 300
 
     def setUp(self) -> None:
-        self._list = DoublyLinkedList()
+        self._list = SinglyLinkedList()
 
     def test_init(self) -> None:
-        data = list(range(self.TEST_SIZE))
-        l = DoublyLinkedList(data)
-        self.assertListEqual(data, list(l))
+        data = range(self.TEST_SIZE)
+        l = SinglyLinkedList(data)
+        for expected, actual in zip(data, l):
+            self.assertEqual(expected, actual)
 
     def test_insert_first(self) -> None:
         for i in range(self.TEST_SIZE):
@@ -44,20 +46,6 @@ class LinkedListTest(TestCase):
         with self.assertRaises(ValueError):
             self._list.remove_first()
 
-    def test_remove_last(self) -> None:
-        with self.assertRaises(ValueError):
-            self._list.remove_last()
-
-        for i in range(self.TEST_SIZE):
-            self._list.insert_last(i)
-        for i in reversed(range(self.TEST_SIZE)):
-            self.assertEqual(0, self._list.peek_first())
-            self.assertEqual(i, self._list.peek_last())
-            self._list.remove_last()
-
-        with self.assertRaises(ValueError):
-            self._list.remove_last()
-
     def test_remove_all(self) -> None:
         self._list.remove_all()
 
@@ -70,6 +58,22 @@ class LinkedListTest(TestCase):
         self._list.remove_all()
         self.assertTrue(self._list.is_empty)
 
+    def test_remove(self) -> None:
+        for i in range(self.TEST_SIZE):
+            with self.assertRaises(ValueError):
+                self._list.remove(i)
+
+        for i in range(self.TEST_SIZE):
+            self._list.insert_last(i)
+
+        for i in random.sample(range(self.TEST_SIZE), self.TEST_SIZE):
+            self._list.remove(i)
+            self.assertNotIn(i, self._list)
+
+        for i in range(self.TEST_SIZE):
+            with self.assertRaises(ValueError):
+                self._list.remove(i)
+
     def test_is_empty(self) -> None:
         self.assertTrue(self._list.is_empty)
 
@@ -78,7 +82,7 @@ class LinkedListTest(TestCase):
             self.assertFalse(self._list.is_empty)
         for i in range(self.TEST_SIZE):
             self.assertFalse(self._list.is_empty)
-            self._list.remove_last()
+            self._list.remove_first()
         self.assertTrue(self._list.is_empty)
 
         for i in range(self.TEST_SIZE):
@@ -114,13 +118,8 @@ class LinkedListTest(TestCase):
             size += 1
             self.assertEqual(size, len(self._list))
 
-        for _ in range(self.TEST_SIZE):
+        for _ in range(self.TEST_SIZE * 2):
             self._list.remove_first()
-            size -= 1
-            self.assertEqual(size, len(self._list))
-
-        for _ in range(self.TEST_SIZE):
-            self._list.remove_last()
             size -= 1
             self.assertEqual(size, len(self._list))
 
@@ -131,15 +130,6 @@ class LinkedListTest(TestCase):
         for i in range(self.TEST_SIZE):
             self._list.insert_last(i)
             for j, e in enumerate(self._list):
-                self.assertEqual(j, e)
-
-    def test_reversed(self) -> None:
-        for _ in reversed(self._list):
-            self.fail()
-
-        for i in range(self.TEST_SIZE):
-            self._list.insert_first(i)
-            for j, e in enumerate(reversed(self._list)):
                 self.assertEqual(j, e)
 
     def test_contains(self) -> None:
@@ -158,14 +148,14 @@ class LinkedListTest(TestCase):
 
     def test_serialize(self) -> None:
         s = pickle.dumps(self._list)
-        self._list = pickle.loads(s)
-        self.assertTrue(self._list.is_empty)
+        l = pickle.loads(s)
+        self.assertTrue(l.is_empty)
 
         for i in range(self.TEST_SIZE):
             self._list.insert_last(i)
         s = pickle.dumps(self._list)
-        self._list = pickle.loads(s)
-        self.assertFalse(self._list.is_empty)
+        l = pickle.loads(s)
+        self.assertFalse(l.is_empty)
         for i in range(self.TEST_SIZE):
-            self.assertEqual(i, self._list.peek_first())
-            self._list.remove_first()
+            self.assertEqual(i, l.peek_first())
+            l.remove_first()

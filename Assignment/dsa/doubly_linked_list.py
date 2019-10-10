@@ -100,7 +100,7 @@ class DoublyLinkedList:
         self._raise_for_empty()
         return self._tail.data
 
-    def copy(self):
+    def copy(self) -> "DoublyLinkedList":
         return DoublyLinkedList(self)
 
     def __len__(self) -> int:
@@ -113,7 +113,7 @@ class DoublyLinkedList:
             node = node.next
 
     def __reversed__(self) -> Iterator[Any]:
-        node = self._head
+        node = self._tail
         while node is not None:
             yield node.data
             node = node.prev

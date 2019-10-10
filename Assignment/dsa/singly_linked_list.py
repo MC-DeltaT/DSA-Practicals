@@ -17,6 +17,10 @@ class SinglyLinkedList:
             for item in items:
                 self.insert_last(item)
 
+    @property
+    def is_empty(self) -> bool:
+        return len(self) == 0
+
     def insert_first(self, item: Any) -> None:
         self._base.insert_first(item)
 
@@ -31,8 +35,18 @@ class SinglyLinkedList:
         self._raise_for_empty()
         return self._base.tail.data
 
+    def remove_first(self) -> None:
+        self._raise_for_empty()
+        self._base.remove_after(self._base.before_head)
+
     def remove(self, item: Any) -> None:
         self._base.remove(item)
+
+    def remove_all(self) -> None:
+        self._base.remove_all()
+
+    def copy(self) -> "SinglyLinkedList":
+        return SinglyLinkedList(self)
 
     def __len__(self) -> int:
         return self._base.size
@@ -41,7 +55,7 @@ class SinglyLinkedList:
         return iter(self._base)
 
     def __repr__(self) -> str:
-        return "[" + ", ".join(map(repr, self)) + "]"
+        return repr(self._base)
 
     def _raise_for_empty(self) -> None:
         if len(self) == 0:
