@@ -6,7 +6,7 @@ import random
 
 network = SocialNetwork()
 
-for i in range(100):
+for i in range(1000):
     network.add_person(str(i))
 
 
@@ -20,7 +20,7 @@ for person1 in network.people:
                     pass
 
 
-for i in range(60):
+for i in range(100):
     print(f"Timestep {i+1}")
     for person in network.people:
         if random.random() < 0.1:
@@ -31,6 +31,6 @@ for i in range(60):
 pass
 
 
-print("Followers:")
+print("Following count:")
 for person in network.people:
     print(f"\t{person}: {person.following_count}")

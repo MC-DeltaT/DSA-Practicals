@@ -41,7 +41,7 @@ class HashTable:
     MIN_LOAD_FACTOR = 0.1
     # On put(), load factors >= this amount trigger the capacity to be increased.
     # Should be in the range [0, 1].
-    MAX_LOAD_FACTOR = 0.5
+    MAX_LOAD_FACTOR = 0.7
     # Minimum fraction decrease in capacity when a capacity reduction is triggered.
     # (Unless the resulting capacity would be too small to fit all key, value pairs.)
     MIN_SHRINK = 0.1
@@ -109,6 +109,12 @@ class HashTable:
         else:
             res = True
         return res
+
+    # Iterates the keys stored.
+    def __iter__(self) -> Iterator[Hashable]:
+        return map(lambda entry: entry.key,
+                   filter(lambda entry: entry.state == self._Entry.USED,
+                          self._array))
 
     # Inserts a key, value pair into the array, or updates an existing key's value.
     # If the key is new, increments _used.
@@ -193,18 +199,8 @@ class HashTable:
 
     @staticmethod
     def _step_hash(key: Hashable, array_size: int) -> int:
-        # Just do some stuff that's not too trivial, it doesn't matter that much.
-        h = hash(key)       # see note in _hash()
-        # Make h positive, but stop collisions with already positive h values.
-        if h >= 0:
-            h = h * 2
-        else:
-            h = -h * 2 - 1
-        res = 0
-        while h > 0:
-            res = 33 * res + (h % 10)
-            h //= 10
-        return res % array_size
+        # I don't think this really matters too much.
+        return max(1, (33 * abs(hash(key))) % array_size)
 
     # Returns the smallest prime larger than x.
     # For x < 2, returns 2.

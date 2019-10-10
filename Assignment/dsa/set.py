@@ -26,4 +26,4 @@ class Set:
         return item in self._hashtable
 
     def __iter__(self) -> Iterator[Hashable]:
-        return map(lambda k, v: k, self._hashtable)
+        return iter(self._hashtable)
