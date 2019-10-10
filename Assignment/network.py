@@ -1,4 +1,3 @@
-from common import hash_str
 from dsa import OrderedSet, Set, SinglyLinkedList
 
 from itertools import chain
@@ -16,8 +15,8 @@ class Person:
     def __init__(self, name: str) -> None:
         self._name = name
         self._posts = SinglyLinkedList()
-        self._followers = Set()
-        self._following = Set()
+        self._followers = Set(100)
+        self._following = Set(100)
         self._liked_posts = OrderedSet(100)
         self._next_post_id = 1
 
@@ -59,8 +58,7 @@ class Person:
         return len(self._liked_posts)
 
     def make_post(self, text: str) -> "Post":
-        id = self._generate_post_id()
-        post = Post(self, id, text)
+        post = Post(self, text)
         self._posts.insert_first(post)
         return post
 
@@ -85,31 +83,19 @@ class Person:
     def likes_post(self, post: "Post") -> bool:
         return post in self._liked_posts
 
-    def __eq__(self, other) -> bool:
-        return isinstance(other, Person) and other._name == self._name
-
     def __hash__(self) -> int:
-        return hash_str(self._name)
+        # People are actually unique, so can just use object identity.
+        return id(self)
 
     def __repr__(self) -> str:
         return f"Person(name={self._name})"
 
-    def _generate_post_id(self) -> int:
-        id = self._next_post_id
-        self._next_post_id += 1
-        return id
-
 
 class Post:
-    def __init__(self, poster: Person, id: int, text: str) -> None:
+    def __init__(self, poster: Person, text: str) -> None:
         self._poster = poster
-        self._id = id
         self._text = text
-        self._liked_by = Set()
-
-    @property
-    def id(self) -> int:
-        return self._id
+        self._liked_by = Set(100)
 
     @property
     def poster(self) -> Person:
@@ -130,14 +116,12 @@ class Post:
     def is_liked_by(self, person: Person) -> bool:
         return person in self._liked_by
 
-    def __eq__(self, other) -> bool:
-        return isinstance(other, Post) and other._poster == self._poster and other._id == self._id
-
     def __hash__(self) -> int:
-        return hash(self._poster) * self._id
+        # Posts are actually unique, so can just use object identity.
+        return id(self)
 
     def __repr__(self) -> str:
-        return f"Post(poster={self._poster}, id={self._id}, text={self._text})"
+        return f"Post(poster={self._poster}, text={self._text})"
 
     def _like(self, person: Person) -> None:
         self._liked_by.add(person)
@@ -146,6 +130,10 @@ class Post:
 class SocialNetwork:
     def __init__(self) -> None:
         self._people = SinglyLinkedList()
+
+    @property
+    def person_count(self) -> int:
+        return len(self._people)
 
     @property
     def people(self) -> Iterator[Person]:
