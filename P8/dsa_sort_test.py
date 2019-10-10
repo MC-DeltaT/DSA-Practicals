@@ -1,24 +1,36 @@
 from dsa_sort import *
 
 import random
+from typing import Callable, MutableSequence
 import unittest
 
 
 class DSASortTest(unittest.TestCase):
-    TEST_SIZE = 2000
+    TEST_SIZE = 500
+
+    def test_bubble_sort(self) -> None:
+        self.sortTester(bubble_sort)
+
+    def test_insertion_sort(self) -> None:
+        self.sortTester(insertion_sort)
+
+    def test_selection_sort(self) -> None:
+        self.sortTester(selection_sort)
 
     def test_mergesort(self) -> None:
-        for n in range(self.TEST_SIZE):
-            array = random.choices(range(self.TEST_SIZE), k=n)
-            expected = sorted(array)
-            mergesort(array)
-            self.assertListEqual(expected, array)
+        self.sortTester(mergesort)
 
-    def test_quicksort(self) -> None:
+    def test_quicksort_bad(self) -> None:
+        self.sortTester(quicksort_bad)
+
+    def test_quicksort_mo3(self) -> None:
+        self.sortTester(quicksort_mo3)
+
+    def sortTester(self, sorter: Callable[[MutableSequence], None]) -> None:
         for n in range(self.TEST_SIZE):
             array = random.choices(range(self.TEST_SIZE), k=n)
             expected = sorted(array)
-            quicksort(array)
+            sorter(array)
             self.assertListEqual(expected, array)
 
 
