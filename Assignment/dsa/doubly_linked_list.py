@@ -1,7 +1,7 @@
 # Sourced from my Data Structures & Algorithms practical worksheet 3 submission,
 # with modifications.
 
-from typing import Any, Iterable, Iterator, Optional
+from typing import Generic, Iterable, Iterator, Optional, TypeVar
 
 
 __all__ = [
@@ -9,18 +9,21 @@ __all__ = [
 ]
 
 
+T = TypeVar("T")
+
+
 # Doubly-linked, double-ended linked list.
-class DoublyLinkedList:
-    class _Node:
-        def __init__(self, data: Any, prev: Optional["DoublyLinkedList._Node"] = None,
-                     next: Optional["DoublyLinkedList._Node"] = None) -> None:
+class DoublyLinkedList(Generic[T]):
+    class _Node(Generic[T]):
+        def __init__(self, data: T, prev: Optional["DoublyLinkedList._Node[T]"] = None,
+                     next: Optional["DoublyLinkedList._Node[T]"] = None) -> None:
             self.data = data
             self.prev = prev
             self.next = next
 
-    def __init__(self, items: Optional[Iterable] = None) -> None:
-        self._head: Optional["DoublyLinkedList._Node"] = None
-        self._tail: Optional["DoublyLinkedList._Node"] = None
+    def __init__(self, items: Optional[Iterable[T]] = None) -> None:
+        self._head: Optional["DoublyLinkedList._Node[T]"] = None
+        self._tail: Optional["DoublyLinkedList._Node[T]"] = None
         self._size = 0
         if items:
             for item in items:
@@ -30,7 +33,7 @@ class DoublyLinkedList:
     def is_empty(self) -> bool:
         return len(self) == 0
 
-    def insert_first(self, item: Any) -> None:
+    def insert_first(self, item: T) -> None:
         if self.is_empty:
             self._head = self._Node(item)
             self._tail = self._head
@@ -40,7 +43,7 @@ class DoublyLinkedList:
             old_head.prev = self._head
         self._size += 1
 
-    def insert_last(self, item: Any) -> None:
+    def insert_last(self, item: T) -> None:
         if self.is_empty:
             self.insert_first(item)
         else:
@@ -72,7 +75,7 @@ class DoublyLinkedList:
         self._tail = None
         self._size = 0
 
-    def remove(self, item: Any) -> None:
+    def remove(self, item: T) -> None:
         removed = False
         node = self._head
         while node and not removed:
@@ -92,27 +95,27 @@ class DoublyLinkedList:
         if not removed:
             raise ValueError(f"Item `{item}` does not exist in list.")
 
-    def peek_first(self) -> Any:
+    def peek_first(self) -> T:
         self._raise_for_empty()
         return self._head.data
 
-    def peek_last(self) -> Any:
+    def peek_last(self) -> T:
         self._raise_for_empty()
         return self._tail.data
 
-    def copy(self) -> "DoublyLinkedList":
+    def copy(self) -> "DoublyLinkedList[T]":
         return DoublyLinkedList(self)
 
     def __len__(self) -> int:
         return self._size
 
-    def __iter__(self) -> Iterator[Any]:
+    def __iter__(self) -> Iterator[T]:
         node = self._head
         while node is not None:
             yield node.data
             node = node.next
 
-    def __reversed__(self) -> Iterator[Any]:
+    def __reversed__(self) -> Iterator[T]:
         node = self._tail
         while node is not None:
             yield node.data

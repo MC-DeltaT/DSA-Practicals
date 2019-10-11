@@ -1,7 +1,6 @@
-from . import HashTable
-from .impl import SinglyLinkedListBase
+from . import Set, SinglyLinkedList
 
-from typing import Hashable, Iterator
+from typing import Generic, Hashable, Iterator, TypeVar
 
 
 __all__ = [
@@ -9,51 +8,54 @@ __all__ = [
 ]
 
 
+T = TypeVar("T", bound=Hashable)
+
+
 # Linked-list/set hybrid container providing:
 #   O(1) insertion.
-#   O(1) deletion.
+#   O(n) deletion.
 #   O(1) containment check.
 #   Iteration in insertion order.
-class OrderedSet:
+class OrderedSet(Generic[T]):
+    # As this set is implemented with a hashtable, capacity indicates the initial
+    # number of items able to be stored in that hashtable.
     def __init__(self, capacity: int) -> None:
-        self._list = SinglyLinkedListBase()
-        self._hashtable = HashTable(capacity)
+        self._list: SinglyLinkedList[T] = SinglyLinkedList()
+        self._set: Set[T] = Set(capacity)
 
-    # Adds an item to the start of the container if it isn't already present.
+    # Adds an item to the start of the container if it doesn't already exist
     # Returns a bool indicating whether the item was added or not.
-    def add_first(self, item: Hashable) -> bool:
+    def add_first(self, item: T) -> bool:
         if item in self:
             added = False
         else:
             self._list.insert_first(item)
-            self._hashtable[item] = self._list.before_head
+            self._set.add(item)
             added = True
         return added
 
-    # Adds an item to the end of the container if it isn't already present.
+    # Adds an item to the end of the container if it doesn't already exist.
     # Returns a bool indicating whether the item was added or not.
-    def add_last(self, item: Hashable) -> bool:
+    def add_last(self, item: T) -> bool:
         if item in self:
             added = False
         else:
-            prev = self._list.tail
             self._list.insert_last(item)
-            self._hashtable[item] = prev
+            self._set.add(item)
             added = True
         return added
 
-    def remove(self, item: Hashable) -> None:
-        prev = self._hashtable[item]
-        self._list.remove_after(prev)
-        del self._hashtable[item]
+    def remove(self, item: T) -> None:
+        self._list.remove(item)
+        self._set.remove(item)
 
     def __len__(self) -> int:
-        return self._list.size
+        return len(self._set)
 
-    def __contains__(self, item: Hashable) -> bool:
-        return item in self._hashtable
+    def __contains__(self, item: T) -> bool:
+        return item in self._set
 
-    def __iter__(self) -> Iterator[Hashable]:
+    def __iter__(self) -> Iterator[T]:
         return iter(self._list)
 
     def __repr__(self) -> str:

@@ -3,23 +3,28 @@
 
 from itertools import count, takewhile
 from math import ceil, floor, sqrt
-from typing import Any, Hashable, Iterator, Tuple
+from typing import Generic, Hashable, Iterator, Optional, Tuple, TypeVar
 
 import numpy
 
 
 __all__ = [
-    'HashTable'
+    "HashTable"
 ]
 
 
-class HashTable:
-    class _Entry:
+K = TypeVar("K", bound=Hashable)
+V = TypeVar("V")
+
+
+class HashTable(Generic[K, V]):
+    class _Entry(Generic[K, V]):
         NEVER_USED = 0
         PREV_USED = 1
         USED = 2
 
-        def __init__(self, key: Any = None, value: Any = None, state: int = NEVER_USED) -> None:
+        def __init__(self, key: Optional[K] = None, value: Optional[V] = None,
+                     state: int = NEVER_USED) -> None:
             self.state = state
             self.key = key
             self.value = value
@@ -72,7 +77,7 @@ class HashTable:
         return self._array.size
 
     # Returns an iterator of all key, value pairs.
-    def items(self) -> Iterator[Tuple[Hashable, Any]]:
+    def items(self) -> Iterator[Tuple[K, V]]:
         return map(lambda entry: (entry.key, entry.value),
                    filter(lambda entry: entry.state == self._Entry.USED,
                           self._array))
@@ -82,11 +87,11 @@ class HashTable:
         return self._used
 
     # Gets the value with the given key, or raises KeyError if there is no such key.
-    def __getitem__(self, key: Hashable) -> Any:
+    def __getitem__(self, key: K) -> V:
         return self._get(key).value
 
     # Adds the key, value pair to the hashtable, or if the key already exists, updates the value.
-    def __setitem__(self, key: Hashable, value: Any) -> None:
+    def __setitem__(self, key: K, value: V) -> None:
         self._put(key, value)
         # MAX_LOAD_FACTOR > 1 would prevent capacity increases, allowing load factor to reach 1, which will break things.
         assert self.MAX_LOAD_FACTOR <= 1.0
@@ -94,14 +99,14 @@ class HashTable:
             self._increase_capacity()
 
     # Deletes the key, value pair with the given key, or raises KeyError if there is no such key.
-    def __delitem__(self, key: Hashable) -> None:
+    def __delitem__(self, key: K) -> None:
         entry = self._get(key)
         entry.state = self._Entry.PREV_USED
         self._used -= 1
         if self.load_factor <= self.MIN_LOAD_FACTOR:
             self._decrease_capacity()
 
-    def __contains__(self, key: Hashable) -> bool:
+    def __contains__(self, key: K) -> bool:
         try:
             _ = self[key]
         except KeyError:
@@ -111,7 +116,7 @@ class HashTable:
         return res
 
     # Iterates the keys stored.
-    def __iter__(self) -> Iterator[Hashable]:
+    def __iter__(self) -> Iterator[K]:
         return map(lambda entry: entry.key,
                    filter(lambda entry: entry.state == self._Entry.USED,
                           self._array))
@@ -119,7 +124,7 @@ class HashTable:
     # Inserts a key, value pair into the array, or updates an existing key's value.
     # If the key is new, increments _used.
     # The array must have at least one free entry.
-    def _put(self, key: Hashable, value: Any) -> None:
+    def _put(self, key: K, value: V) -> None:
         # Algorithm assumes array never becomes 100% full.
         assert len(self) < self.capacity
         idx = self._hash(key, self.capacity)
@@ -139,7 +144,7 @@ class HashTable:
                 idx = (idx + step) % self.capacity
 
     # Gets the entry object with the given key, or raises KeyError if there is no such key.
-    def _get(self, key: Hashable) -> _Entry:
+    def _get(self, key: K) -> _Entry[K, V]:
         idx = self._hash(key, self.capacity)
         step = self._step_hash(key, self.capacity)
         original_idx = idx

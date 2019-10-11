@@ -1,6 +1,6 @@
 from .impl import SinglyLinkedListBase
 
-from typing import Any, Iterable, Iterator, Optional
+from typing import Generic, Iterable, Iterator, Optional, TypeVar
 
 
 __all__ = [
@@ -8,11 +8,13 @@ __all__ = [
 ]
 
 
-# Singly-linked, double-ended linked list.
-class SinglyLinkedList:
+T = TypeVar("T")
 
-    def __init__(self, items: Optional[Iterable] = None) -> None:
-        self._base = SinglyLinkedListBase()
+
+# Singly-linked, double-ended linked list.
+class SinglyLinkedList(Generic[T]):
+    def __init__(self, items: Optional[Iterable[T]] = None) -> None:
+        self._base: SinglyLinkedListBase[T] = SinglyLinkedListBase()
         if items:
             for item in items:
                 self.insert_last(item)
@@ -21,17 +23,17 @@ class SinglyLinkedList:
     def is_empty(self) -> bool:
         return len(self) == 0
 
-    def insert_first(self, item: Any) -> None:
+    def insert_first(self, item: T) -> None:
         self._base.insert_first(item)
 
-    def insert_last(self, item: Any) -> None:
+    def insert_last(self, item: T) -> None:
         self._base.insert_last(item)
 
-    def peek_first(self) -> Any:
+    def peek_first(self) -> T:
         self._raise_for_empty()
         return self._base.head.data
 
-    def peek_last(self) -> Any:
+    def peek_last(self) -> T:
         self._raise_for_empty()
         return self._base.tail.data
 
@@ -39,19 +41,19 @@ class SinglyLinkedList:
         self._raise_for_empty()
         self._base.remove_after(self._base.before_head)
 
-    def remove(self, item: Any) -> None:
+    def remove(self, item: T) -> None:
         self._base.remove(item)
 
     def remove_all(self) -> None:
         self._base.remove_all()
 
-    def copy(self) -> "SinglyLinkedList":
+    def copy(self) -> "SinglyLinkedList[T]":
         return SinglyLinkedList(self)
 
     def __len__(self) -> int:
         return self._base.size
 
-    def __iter__(self) -> Iterator[Any]:
+    def __iter__(self) -> Iterator[T]:
         return iter(self._base)
 
     def __repr__(self) -> str:
