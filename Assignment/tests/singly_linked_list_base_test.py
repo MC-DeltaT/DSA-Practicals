@@ -3,8 +3,13 @@ from dsa.impl import SinglyLinkedListBase
 from unittest import TestCase
 
 
+__all__ = [
+    "SinglyLinkedListBaseTest"
+]
+
+
 class SinglyLinkedListBaseTest(TestCase):
-    TEST_SIZE = 300
+    TEST_SIZE = 400
 
     def setUp(self) -> None:
         self._list = SinglyLinkedListBase()

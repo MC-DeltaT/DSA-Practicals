@@ -1,11 +1,11 @@
 # Sourced from my Data Structures & Algorithms practical worksheet 6 submission,
 # with modifications.
 
+from .array import Array
+
 from itertools import count, takewhile
 from math import ceil, floor, sqrt
 from typing import Generic, Hashable, Iterator, Optional, Tuple, TypeVar
-
-import numpy
 
 
 __all__ = [
@@ -59,7 +59,7 @@ class HashTable(Generic[K, V]):
         if capacity < 1:
             raise ValueError(f"capacity must be >=1, got {capacity}.")
         capacity = self._next_prime(ceil(capacity / self.MAX_LOAD_FACTOR))
-        self._array = numpy.empty(capacity, dtype=numpy.object)
+        self._array = Array(capacity)
         for i in range(self.capacity):
             self._array[i] = self._Entry()
         self._used = 0
@@ -74,7 +74,7 @@ class HashTable(Generic[K, V]):
     # Note: this amount automatically adjusts as the table grows and shrinks.
     @property
     def capacity(self) -> int:
-        return self._array.size
+        return len(self._array)
 
     # Returns an iterator of all key, value pairs.
     def items(self) -> Iterator[Tuple[K, V]]:
@@ -188,7 +188,7 @@ class HashTable(Generic[K, V]):
     def _set_capacity(self, new_capacity: int) -> None:
         assert new_capacity >= len(self)
         old_array = self._array
-        self._array = numpy.empty(new_capacity, dtype=numpy.object)
+        self._array = Array(new_capacity)
         self._used = 0
         for i in range(new_capacity):
             self._array[i] = self._Entry()

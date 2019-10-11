@@ -1,4 +1,5 @@
-from . import Set, SinglyLinkedList
+from .set import Set
+from .singly_linked_list import SinglyLinkedList
 
 from typing import Generic, Hashable, Iterator, TypeVar
 

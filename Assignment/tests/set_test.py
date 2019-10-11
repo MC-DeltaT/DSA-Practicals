@@ -4,6 +4,11 @@ import random
 from unittest import TestCase
 
 
+__all__ = [
+    "SetTest"
+]
+
+
 class SetTest(TestCase):
     TEST_SIZE = 750
 

@@ -1,6 +1,6 @@
 from .impl import SinglyLinkedListBase
 
-from typing import Generic, Iterable, Iterator, Optional, TypeVar
+from typing import Collection, Iterable, Iterator, Optional, TypeVar
 
 
 __all__ = [
@@ -12,7 +12,7 @@ T = TypeVar("T")
 
 
 # Singly-linked, double-ended linked list.
-class SinglyLinkedList(Generic[T]):
+class SinglyLinkedList(Collection[T]):
     def __init__(self, items: Optional[Iterable[T]] = None) -> None:
         self._base: SinglyLinkedListBase[T] = SinglyLinkedListBase()
         if items:
@@ -55,6 +55,10 @@ class SinglyLinkedList(Generic[T]):
 
     def __iter__(self) -> Iterator[T]:
         return iter(self._base)
+
+    # Only for Collection requirement.
+    def __contains__(self, item: T) -> bool:
+        return item in iter(self)
 
     def __repr__(self) -> str:
         return repr(self._base)

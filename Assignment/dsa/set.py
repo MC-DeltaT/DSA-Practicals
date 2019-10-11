@@ -1,4 +1,4 @@
-from . import HashTable
+from .hash_table import HashTable
 
 from typing import Generic, Hashable, Iterator, TypeVar
 

@@ -8,7 +8,12 @@ import random
 from unittest import TestCase
 
 
-class DoublyLinkedListTest(TestCase):
+__all__ = [
+    "SinglyLinkedListTest"
+]
+
+
+class SinglyLinkedListTest(TestCase):
     TEST_SIZE = 300
 
     def setUp(self) -> None:

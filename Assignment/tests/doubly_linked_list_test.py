@@ -8,6 +8,11 @@ import random
 from unittest import TestCase
 
 
+__all__ = [
+    "DoublyLinkedListTest"
+]
+
+
 class DoublyLinkedListTest(TestCase):
     TEST_SIZE = 300
 

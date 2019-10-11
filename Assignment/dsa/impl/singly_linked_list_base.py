@@ -8,6 +8,7 @@ __all__ = [
 
 T = TypeVar("T")
 
+
 # Provides the base for a singly-linked, double-ended linked list.
 # Exposes internals so they can be reused across multiple data structures.
 # (Not meant to be used as a public interface.)
