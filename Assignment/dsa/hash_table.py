@@ -32,7 +32,7 @@ class HashTable(Generic[K, V]):
         # For debugging purposes only.
         def __repr__(self) -> str:
             if self.state == self.USED:
-                res = f"{self.key}, {self.value}"
+                res = f"{self.key}: {self.value}"
             elif self.state == self.NEVER_USED:
                 res = "NEVER_USED"
             elif self.state == self.PREV_USED:
@@ -54,11 +54,11 @@ class HashTable(Generic[K, V]):
     MIN_GROWTH = 0.5
 
     # Initialises the hashtable with the given starting capacity.
-    # capacity must be >= 1.
-    def __init__(self, capacity: int) -> None:
+    # capacity must be >= 1 if provided.
+    def __init__(self, capacity: Optional[int] = 1000) -> None:
         if capacity < 1:
             raise ValueError(f"capacity must be >=1, got {capacity}.")
-        capacity = self._next_prime(ceil(capacity / self.MAX_LOAD_FACTOR))
+        capacity = self._next_prime(ceil(capacity / self.MAX_LOAD_FACTOR) + 1)
         self._array = Array(capacity)
         for i in range(self.capacity):
             self._array[i] = self._Entry()
@@ -127,6 +127,9 @@ class HashTable(Generic[K, V]):
                    filter(lambda entry: entry.state == self._Entry.USED,
                           self._array))
 
+    def __repr__(self) -> str:
+        return "{" + ", ".join(map(lambda k, v: f"{k}: {v}", self.items())) + "}"
+
     # Inserts a key, value pair into the array, or updates an existing key's value.
     # If the key is new, increments _used and returns True.
     # The array must have at least one free entry.
@@ -159,14 +162,13 @@ class HashTable(Generic[K, V]):
         while not found:
             entry = self._array[idx]
             if entry.state == self._Entry.USED and entry.key == key:
-                res = entry
                 found = True
             else:
                 if entry.state in (self._Entry.USED, self._Entry.PREV_USED):
                     idx = (idx + step) % self.capacity
                 if entry.state == self._Entry.NEVER_USED or idx == original_idx:
                     raise KeyError(f"Key `{key}` not in hash table.")
-        return res
+        return entry
 
     # Increases the capacity by at least the amount specified by MIN_GROWTH.
     # New capacity is a prime number.

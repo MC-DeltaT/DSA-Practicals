@@ -1,4 +1,4 @@
-from typing import Collection, Iterator, Sequence, TypeVar, Union
+from typing import Collection, Generic, Iterator, TypeVar, Union
 
 import numpy
 
@@ -12,7 +12,7 @@ T = TypeVar("T")
 
 
 # Simple wrapper for numpy.ndarray to make it a bit easier to use.
-class Array(Sequence[T]):
+class Array(Generic[T]):
     def __init__(self, size_or_data: Union[int, Collection[T]]) -> None:
         if isinstance(size_or_data, int):
             self._array = numpy.empty(size_or_data, dtype=numpy.object)
@@ -41,3 +41,6 @@ class Array(Sequence[T]):
 
     def __reversed__(self) -> Iterator[T]:
         return reversed(self._array)
+
+    def __repr__(self) -> str:
+        return "[" + ", ".join(self) + "]"

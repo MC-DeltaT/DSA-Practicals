@@ -1,4 +1,4 @@
-from dsa import OrderedSet, Set, SinglyLinkedList
+from dsa import Set, SinglyLinkedList
 
 from itertools import chain
 from typing import Iterator
@@ -12,13 +12,13 @@ __all__ = [
 
 
 class Person:
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str, network: "SocialNetwork") -> None:
         self._name = name
+        self._network = network
         self._posts = SinglyLinkedList()
-        self._followers = Set(100)
-        self._following = Set(100)
-        self._liked_posts = OrderedSet(100)
-        self._next_post_id = 1
+        self._followers = Set(network._expected_people)
+        self._following = Set(network._expected_people)
+        self._liked_posts = Set(network._expected_posts)
 
     @property
     def name(self) -> str:
@@ -54,7 +54,7 @@ class Person:
         return len(self._following)
 
     @property
-    def post_like_count(self) -> int:
+    def liked_post_count(self) -> int:
         return len(self._liked_posts)
 
     def make_post(self, text: str) -> "Post":
@@ -70,7 +70,7 @@ class Person:
         person._followers.add(self)
 
     def like_post(self, post: "Post") -> None:
-        if not self._liked_posts.add_first(post):
+        if not self._liked_posts.add(post):
             raise ValueError(f"{self} already likes {post}.")
         post._like(self)
 
@@ -95,7 +95,7 @@ class Post:
     def __init__(self, poster: Person, text: str) -> None:
         self._poster = poster
         self._text = text
-        self._liked_by = Set(100)
+        self._liked_by = Set(self._poster._network._expected_people)
 
     @property
     def poster(self) -> Person:
@@ -128,8 +128,13 @@ class Post:
 
 
 class SocialNetwork:
-    def __init__(self) -> None:
+    # expected_people: expected total number of people to be present in the network.
+    # expected_post: expected total number of posts to be present in the network.
+    # (These are solely for performance optimisation.)
+    def __init__(self, expected_people: int, expected_posts: int) -> None:
         self._people = SinglyLinkedList()
+        self._expected_people = max(expected_people, 1)
+        self._expected_posts = max(expected_posts, 1)
 
     @property
     def person_count(self) -> int:
@@ -144,6 +149,6 @@ class SocialNetwork:
         return chain.from_iterable(person.posts for person in self.people)
 
     def add_person(self, name) -> Person:
-        person = Person(name)
+        person = Person(name, self)
         self._people.insert_last(person)
         return person

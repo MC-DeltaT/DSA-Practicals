@@ -23,7 +23,10 @@ def evolve_network(network: SocialNetwork, like_chance: float, follow_chance: fl
         raise ValueError(f"follow_chance must be in the range [0, 1], but got {follow_chance}.")
 
     for person in network.people:
+        # Can't add to list of following while iterating following - will probably break something.
+        # Keep track of additions and add later.
         new_follows = SinglyLinkedList()
+
         for following in person.following:
             for post in following.posts:
                 interact(person, post, new_follows)
