@@ -1,22 +1,21 @@
-# import random
-#
-#
-# __all__ = [
-#     "NormalDistribution"
-# ]
-#
-#
-# class NormalDistribution:
-#     def __init__(self, mean: float, std: float) -> None:
-#         self._mean = mean
-#         self._std = std
-#
-#     def __call__(self) -> float:
-#         return random.normalvariate(self._mean, self._std)
-#
-#
-# def hash_str(s: str):
-#     res = 0
-#     for c in s:
-#         res = 33 * res + ord(c)
-#     return res
+from typing import Iterable, Iterator, Sized, TypeVar
+
+
+__all__ = [
+    "SizedIterable"
+]
+
+
+T = TypeVar("T")
+
+
+class SizedIterable(Iterable[T], Sized):
+    def __init__(self, iterable: Iterable[T], size: int) -> None:
+        self._iterable = iterable
+        self._size = size
+
+    def __len__(self) -> int:
+        return self._size
+
+    def __iter__(self) -> Iterator[T]:
+        return iter(self._iterable)

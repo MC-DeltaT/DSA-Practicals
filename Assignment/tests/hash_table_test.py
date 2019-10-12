@@ -161,6 +161,20 @@ class HashTableTest(TestCase):
             self.assertIn((key, value), pairs)
         self.assertEqual(len(pairs), visited)
 
+    def test_values(self) -> None:
+        # Add key, value pairs.
+        keys = Array(random.sample(range(self.TEST_SIZE), self.TEST_SIZE))
+        values = Array(random.sample(range(self.TEST_SIZE), self.TEST_SIZE))
+        for key, value in zip(keys, values):
+            self._hashtable[key] = value
+
+        # Assert all values are yielded exactly once.
+        visited = 0
+        for value in self._hashtable.values():
+            visited += 1
+            self.assertIn(value, values)
+        self.assertEqual(len(values), visited)
+
     @staticmethod
     def _find(pairs: Sequence[Tuple[Any, Any]], key):
         return next(map(lambda p: p[1], filter(lambda p: p[0] == key, pairs)))

@@ -59,7 +59,7 @@ class HashTable(Generic[K, V]):
         if capacity < 1:
             raise ValueError(f"capacity must be >=1, got {capacity}.")
         capacity = self._next_prime(ceil(capacity / self.MAX_LOAD_FACTOR) + 1)
-        self._array = Array(capacity)
+        self._array: Array["HashTable._Entry"] = Array(capacity)
         for i in range(self.capacity):
             self._array[i] = self._Entry()
         self._used = 0
@@ -92,6 +92,12 @@ class HashTable(Generic[K, V]):
                    filter(lambda entry: entry.state == self._Entry.USED,
                           self._array))
 
+    # Iterates over all values.
+    def values(self) -> Iterator[V]:
+        return map(lambda entry: entry.value,
+                   filter(lambda entry: entry.state == self._Entry.USED,
+                          self._array))
+
     # The number of key, value pairs currently stored.
     def __len__(self) -> int:
         return self._used
@@ -108,6 +114,8 @@ class HashTable(Generic[K, V]):
     def __delitem__(self, key: K) -> None:
         entry = self._get(key)
         entry.state = self._Entry.PREV_USED
+        entry.key = None
+        entry.value = None
         self._used -= 1
         if self.load_factor <= self.MIN_LOAD_FACTOR:
             self._decrease_capacity()
@@ -128,7 +136,7 @@ class HashTable(Generic[K, V]):
                           self._array))
 
     def __repr__(self) -> str:
-        return "{" + ", ".join(map(lambda k, v: f"{k}: {v}", self.items())) + "}"
+        return "{" + ", ".join(map(lambda p: f"{p[0]}: {p[1]}", self.items())) + "}"
 
     # Inserts a key, value pair into the array, or updates an existing key's value.
     # If the key is new, increments _used and returns True.

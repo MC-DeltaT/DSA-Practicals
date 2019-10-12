@@ -38,4 +38,4 @@ class Set(Generic[T]):
         return iter(self._hashtable)
 
     def __repr__(self) -> str:
-        return "{" + ", ".join(self) + "}"
+        return "{" + ", ".join(map(repr, self)) + "}"

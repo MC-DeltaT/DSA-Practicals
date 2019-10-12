@@ -1,21 +1,25 @@
+from .network import Person, Post, SocialNetwork
 from dsa import SinglyLinkedList
-from network import Person, Post, SocialNetwork
 
 import random
 
 
+__all__ = [
+    "evolve_network"
+]
+
+
 # TODO: documentation.
 def evolve_network(network: SocialNetwork, like_chance: float, follow_chance: float) -> None:
-    def interact(person: Person, post: Post, new_follows) -> None:
+    def interact(person: Person, post: Post, new_follows: SinglyLinkedList[Person]) -> None:
         if random.random() < like_chance:
             try:
                 person.like_post(post)
             except ValueError:
                 # Ignore if the post has already been liked.
                 pass
-            else:
-                if random.random() < follow_chance:
-                    new_follows.insert_last(post.poster)
+            if random.random() < follow_chance:
+                new_follows.insert_last(post.poster)
 
     if not 0 <= like_chance <= 1.0:
         raise ValueError(f"like_chance must be in the range [0, 1], but got {like_chance}.")
@@ -25,7 +29,7 @@ def evolve_network(network: SocialNetwork, like_chance: float, follow_chance: fl
     for person in network.people:
         # Can't add to list of following while iterating following - will probably break something.
         # Keep track of additions and add later.
-        new_follows = SinglyLinkedList()
+        new_follows: SinglyLinkedList[Person] = SinglyLinkedList()
 
         for following in person.following:
             for post in following.posts:

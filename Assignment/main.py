@@ -1,15 +1,14 @@
-from network import SocialNetwork
-from simulation import evolve_network
+from network import evolve_network, SocialNetwork
+from simulation_mode import simulation_complete
 
 import random
 
 
-people = 100
-post_chance = 0.1
-timesteps = 50
+people = 10
+post_chance = 0.5
 
 
-network = SocialNetwork(people, round(timesteps * people * post_chance))
+network = SocialNetwork(people, round(people * post_chance))
 
 for i in range(people):
     network.add_person(str(i))
@@ -18,25 +17,23 @@ for i in range(people):
 for person1 in network.people:
     for person2 in network.people:
         if person1 != person2:
-            if random.random() < 0.05:
+            if random.random() < 2 / people:
                 try:
                     person1.follow(person2)
                 except ValueError:
                     pass
+    if random.random() < post_chance:
+        person1.make_post(f"{person1}: hello.")
 
 print("Following count:")
 for person in network.people:
     print(f"\t{person}: {person.following_count}")
 
-for i in range(timesteps):
-    print(f"Timestep {i+1}")
-    for person in network.people:
-        if random.random() < post_chance:
-            person.make_post(f"{person} in timestep {i+1}.")
-    evolve_network(network, 0.05, 0.1)
-
-
-pass
+i = 1
+while not simulation_complete(network):
+    print(f"Timestep {i}")
+    evolve_network(network, 1, 1)
+    i += 1
 
 
 print("Following count:")

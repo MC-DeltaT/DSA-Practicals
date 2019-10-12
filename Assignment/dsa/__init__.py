@@ -4,3 +4,4 @@ from .hash_table import *
 from .ordered_set import *
 from .singly_linked_list import *
 from .set import *
+from .sorting import *

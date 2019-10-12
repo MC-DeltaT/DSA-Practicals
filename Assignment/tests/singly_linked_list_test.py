@@ -3,7 +3,6 @@
 
 from dsa import SinglyLinkedList
 
-import pickle
 import random
 from unittest import TestCase
 
