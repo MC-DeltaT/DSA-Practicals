@@ -76,6 +76,16 @@ class HashTable(Generic[K, V]):
     def capacity(self) -> int:
         return len(self._array)
 
+    # Adds the key, value pair to the hashtable, or if the key already exists, updates the value.
+    # Returns a bool indicating if the key was new.
+    def set(self, key: K, value: V) -> bool:
+        res = self._put(key, value)
+        # MAX_LOAD_FACTOR > 1 would prevent capacity increases, allowing load factor to reach 1, which will break things.
+        assert self.MAX_LOAD_FACTOR <= 1.0
+        if self.load_factor >= self.MAX_LOAD_FACTOR:
+            self._increase_capacity()
+        return res
+
     # Returns an iterator of all key, value pairs.
     def items(self) -> Iterator[Tuple[K, V]]:
         return map(lambda entry: (entry.key, entry.value),
@@ -92,11 +102,7 @@ class HashTable(Generic[K, V]):
 
     # Adds the key, value pair to the hashtable, or if the key already exists, updates the value.
     def __setitem__(self, key: K, value: V) -> None:
-        self._put(key, value)
-        # MAX_LOAD_FACTOR > 1 would prevent capacity increases, allowing load factor to reach 1, which will break things.
-        assert self.MAX_LOAD_FACTOR <= 1.0
-        if self.load_factor >= self.MAX_LOAD_FACTOR:
-            self._increase_capacity()
+        self.set(key, value)
 
     # Deletes the key, value pair with the given key, or raises KeyError if there is no such key.
     def __delitem__(self, key: K) -> None:
@@ -122,9 +128,9 @@ class HashTable(Generic[K, V]):
                           self._array))
 
     # Inserts a key, value pair into the array, or updates an existing key's value.
-    # If the key is new, increments _used.
+    # If the key is new, increments _used and returns True.
     # The array must have at least one free entry.
-    def _put(self, key: K, value: V) -> None:
+    def _put(self, key: K, value: V) -> bool:
         # Algorithm assumes array never becomes 100% full.
         assert len(self) < self.capacity
         idx = self._hash(key, self.capacity)
@@ -142,6 +148,7 @@ class HashTable(Generic[K, V]):
                 done = True
             else:
                 idx = (idx + step) % self.capacity
+        return free
 
     # Gets the entry object with the given key, or raises KeyError if there is no such key.
     def _get(self, key: K) -> _Entry[K, V]:

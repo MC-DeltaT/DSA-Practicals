@@ -59,7 +59,7 @@ class HashTableTest(TestCase):
         pairs: Array[Tuple[int, int]] = Array(len(keys))
         for i, key in enumerate(keys):
             value = random.choice(range(self.TEST_SIZE))
-            self._hashtable[key] = value
+            self.assertTrue(self._hashtable.set(key, value))
             pairs[i] = (key, value)
             self.assertEqual(value, self._hashtable[key])
             self.assertIn(key, self._hashtable)
@@ -75,7 +75,7 @@ class HashTableTest(TestCase):
             key, value = pairs[i][0], pairs[i][1]
             value += self.TEST_SIZE
             pairs[i] = (key, value)
-            self._hashtable[key] = value
+            self.assertFalse(self._hashtable.set(key, value))
             self.assertEqual(value, self._hashtable[key])
             self.assertIn(key, self._hashtable)
 

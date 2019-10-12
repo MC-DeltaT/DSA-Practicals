@@ -38,12 +38,9 @@ class OrderedSet(Generic[T]):
     # Adds an item to the end of the container if it doesn't already exist.
     # Returns a bool indicating whether the item was added or not.
     def add_last(self, item: T) -> bool:
-        if item in self:
-            added = False
-        else:
+        added = self._set.add(item)
+        if added:
             self._list.insert_last(item)
-            self._set.add(item)
-            added = True
         return added
 
     def remove(self, item: T) -> None:

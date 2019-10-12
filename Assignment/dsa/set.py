@@ -18,8 +18,11 @@ class Set(Generic[T]):
         self._hashtable: HashTable[T, None] = HashTable(capacity)
 
     # Adds an item to the set, if it doesn't already exist.
-    def add(self, item: T) -> None:
-        self._hashtable[item] = None
+    # Returns a bool indicating if the key was new.
+    def add(self, item: T) -> bool:
+        # Can't be bothered re-implementing a hashtable just to remove ability to store a value,
+        # so just set value to None.
+        return self._hashtable.set(item, None)
 
     # Removes an item from the set if it exists, otherwise raises KeyError.
     def remove(self, item: T) -> None:

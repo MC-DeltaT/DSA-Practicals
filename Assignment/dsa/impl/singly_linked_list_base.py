@@ -14,6 +14,9 @@ T = TypeVar("T")
 # (Not meant to be used as a public interface.)
 class SinglyLinkedListBase(Generic[T]):
     class Node(Generic[T]):
+        # A lot of list traversal and node access, easy optimisation here.
+        __slots__ = ("data", "next")
+
         def __init__(self, data: T, next: Optional["SinglyLinkedListBase.Node[T]"]) -> None:
             self.data = data
             self.next = next

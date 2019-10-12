@@ -22,7 +22,7 @@ class SetTest(TestCase):
         # Add unique items.
         for i in random.sample(range(self.TEST_SIZE), self.TEST_SIZE):
             self.assertNotIn(i, self._set, "pre-add contain check")
-            self._set.add(i)
+            self.assertTrue(self._set.add(i))
             self.assertIn(i, self._set, "immediate contain check")
 
         # Check again to make sure no funky stuff happens after resizes.
@@ -39,7 +39,7 @@ class SetTest(TestCase):
 
         # Add duplicate items.
         for i in random.sample(range(self.TEST_SIZE), self.TEST_SIZE):
-            self._set.add(i)
+            self.assertFalse(self._set.add(i))
 
         for i in random.sample(range(self.TEST_SIZE), self.TEST_SIZE):
             self.assertIn(i, self._set, "duplicate item contain check")
@@ -47,7 +47,7 @@ class SetTest(TestCase):
     def test_add_contains_2(self) -> None:
         # Add items in order of hash.
         for i in range(self.TEST_SIZE):
-            self._set.add(i)
+            self.assertTrue(self._set.add(i))
             self.assertIn(i, self._set, "in order immediate contain check")
 
         for i in random.sample(range(self.TEST_SIZE), self.TEST_SIZE):
@@ -56,7 +56,7 @@ class SetTest(TestCase):
     def test_add_contains_3(self) -> None:
         # Add items in reverse order of hash.
         for i in reversed(range(self.TEST_SIZE)):
-            self._set.add(i)
+            self.assertTrue(self._set.add(i))
             self.assertIn(i, self._set, "reverse order immediate contain check")
 
         for i in random.sample(range(self.TEST_SIZE), self.TEST_SIZE):

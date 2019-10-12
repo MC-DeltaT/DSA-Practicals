@@ -14,7 +14,7 @@ __all__ = [
 
 
 class SinglyLinkedListTest(TestCase):
-    TEST_SIZE = 300
+    TEST_SIZE = 1000
 
     def setUp(self) -> None:
         self._list = SinglyLinkedList()
@@ -150,17 +150,3 @@ class SinglyLinkedListTest(TestCase):
 
         for i in range(self.TEST_SIZE, self.TEST_SIZE * 2):
             self.assertNotIn(i, self._list)
-
-    def test_serialize(self) -> None:
-        s = pickle.dumps(self._list)
-        l = pickle.loads(s)
-        self.assertTrue(l.is_empty)
-
-        for i in range(self.TEST_SIZE):
-            self._list.insert_last(i)
-        s = pickle.dumps(self._list)
-        l = pickle.loads(s)
-        self.assertFalse(l.is_empty)
-        for i in range(self.TEST_SIZE):
-            self.assertEqual(i, l.peek_first())
-            l.remove_first()
