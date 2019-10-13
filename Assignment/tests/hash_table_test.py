@@ -3,6 +3,7 @@
 
 from dsa import Array, HashTable
 
+import pickle
 import random
 from typing import Any, Sequence, Tuple
 from unittest import TestCase
@@ -14,7 +15,7 @@ __all__ = [
 
 
 class HashTableTest(TestCase):
-    TEST_SIZE = 10000
+    TEST_SIZE = 1000
 
     def setUp(self) -> None:
         # Make sure capacity is low enough to trigger resizes.
@@ -100,11 +101,14 @@ class HashTableTest(TestCase):
 
         # Delete entries and assert they got removed.
         random.shuffle(keys)
-        for key in keys:
-            del self._hashtable[key]
-            self.assertNotIn(key, self._hashtable)
+        for i in range(len(keys)):
+            del self._hashtable[keys[i]]
+            self.assertNotIn(keys[i], self._hashtable)
             with self.assertRaises(KeyError):
-                _ = self._hashtable[key]
+                _ = self._hashtable[keys[i]]
+            # Assert rest of entries stayed in hashtable.
+            for j in range(i + 1, len(keys)):
+                self.assertIn(keys[j], self._hashtable)
 
         # Assert entries stayed removed after internal resize occurs.
         random.shuffle(keys)
@@ -174,6 +178,29 @@ class HashTableTest(TestCase):
             visited += 1
             self.assertIn(value, values)
         self.assertEqual(len(values), visited)
+
+    def test_serialise(self) -> None:
+        b = pickle.dumps(self._hashtable)
+        hashtable = pickle.loads(b)
+        self.assertEqual(0, len(hashtable))
+        for _ in hashtable:
+            self.fail()
+        for i in range(self.TEST_SIZE):
+            self.assertNotIn(i, hashtable)
+
+        keys = Array(random.sample(range(self.TEST_SIZE), self.TEST_SIZE))
+        pairs: Array[Tuple[int, int]] = Array(len(keys))
+        for i, key in enumerate(keys):
+            value = random.choice(range(self.TEST_SIZE))
+            self._hashtable[key] = value
+            pairs[i] = (key, value)
+
+        b = pickle.dumps(self._hashtable)
+        hashtable = pickle.loads(b)
+        random.shuffle(pairs)
+        for key, value in pairs:
+            self.assertIn(key, hashtable)
+            self.assertEqual(value, hashtable[key])
 
     @staticmethod
     def _find(pairs: Sequence[Tuple[Any, Any]], key):

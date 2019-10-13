@@ -2,7 +2,8 @@ from typing import Iterable, Iterator, Sized, TypeVar
 
 
 __all__ = [
-    "SizedIterable"
+    "SizedIterable",
+    "str_hash"
 ]
 
 
@@ -19,3 +20,10 @@ class SizedIterable(Iterable[T], Sized):
 
     def __iter__(self) -> Iterator[T]:
         return iter(self._iterable)
+
+
+def str_hash(s: str) -> int:
+    res = 0
+    for c in s:
+        res = 33 * res + ord(c)
+    return res

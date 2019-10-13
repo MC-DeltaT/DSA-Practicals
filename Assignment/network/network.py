@@ -1,4 +1,4 @@
-from common import SizedIterable
+from common import SizedIterable, str_hash
 from dsa import HashTable, Set, SinglyLinkedList
 
 from itertools import chain
@@ -19,6 +19,7 @@ class Person:
         self._followers: Set["Person"] = Set(network._expected_people)
         self._following: Set["Person"] = Set(network._expected_people)
         self._liked_posts: Set["Post"] = Set(network._expected_posts)
+        self._post_id = 1
 
     @property
     def name(self) -> str:
@@ -58,7 +59,8 @@ class Person:
         return len(self._liked_posts)
 
     def make_post(self, text: str) -> "Post":
-        post = Post(self, text)
+        post = Post(self, self._post_id, text)
+        self._post_id += 1
         self._posts.insert_first(post)
         return post
 
@@ -97,9 +99,11 @@ class Person:
     def likes_post(self, post: "Post") -> bool:
         return post in self._liked_posts
 
+    def __eq__(self, other) -> bool:
+        return isinstance(other, Person) and other._name == self._name
+
     def __hash__(self) -> int:
-        # People are actually unique, so can just use object identity.
-        return id(self)
+        return str_hash(self._name)
 
     def __str__(self) -> str:
         return self.name
@@ -131,8 +135,9 @@ class Person:
 
 
 class Post:
-    def __init__(self, poster: Person, text: str) -> None:
+    def __init__(self, poster: Person, id: int, text: str) -> None:
         self._poster = poster
+        self._id = id
         self._text = text
         self._liked_by: Set[Person] = Set(self._poster._network._expected_people)
 
@@ -147,8 +152,8 @@ class Post:
     # Abbreviated version of the post text.
     @property
     def short_text(self) -> str:
-        if len(self._text) > 20:
-            res = self._text[:17] + "..."
+        if len(self._text) > 30:
+            res = self._text[:27] + "..."
         else:
             res = self._text
         return res
@@ -164,15 +169,20 @@ class Post:
     def is_liked_by(self, person: Person) -> bool:
         return person in self._liked_by
 
+    def __eq__(self, other) -> bool:
+        # Note: posts with the same text are not necessarily the same post!
+        return isinstance(other, Post) and other._poster == self._poster and other._id == self._id
+
     def __hash__(self) -> int:
-        # Posts are actually unique, so can just use object identity.
-        return id(self)
+        # Hopefully this doesn't collide often.
+        return hash(self._poster) + str_hash(self._text) + self._id
 
     def __str__(self) -> str:
+        # In most cases probably don't want to see full text (could be very long).
         return f"{self.poster.name}: {self.short_text}"
 
     def __repr__(self) -> str:
-        return f"Post(poster={self._poster}, text={self._text})"
+        return f"Post(poster={self._poster}, id={self._id}, text={self._text})"
 
     def _delete(self) -> None:
         for person in self._liked_by:
@@ -211,17 +221,17 @@ class SocialNetwork:
 
     def add_person(self, name) -> Person:
         if name in self._people:
-            raise ValueError(f"Person with name {name} already exists in network.")
+            raise ValueError(f'Person with name "{name}" already exists in network.')
         person = Person(name, self)
         self._people[name] = person
         return person
 
     def delete_person(self, person: Person) -> None:
-        person._delete()
         del self._people[person.name]
+        person._delete()
 
     def find_person(self, name: str) -> Person:
         try:
             return self._people[name]
         except KeyError:
-            raise ValueError(f"Person with name {name} doesn't exist in network.")
+            raise ValueError(f'Person with name "{name}" doesn\'t exist in network.')

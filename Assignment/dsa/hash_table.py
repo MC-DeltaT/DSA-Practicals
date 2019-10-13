@@ -2,6 +2,7 @@
 # with modifications.
 
 from .array import Array
+from common import str_hash
 
 from itertools import count, takewhile
 from math import ceil, floor, sqrt
@@ -215,14 +216,23 @@ class HashTable(Generic[K, V]):
 
     @staticmethod
     def _hash(key: Hashable, array_size: int) -> int:
-        # Note! Looks like it uses Python in-built hash function, but actually calls key.__hash__(),
-        # which I manually implement for the types I'll be using with this HashTable class.
-        return hash(key) % array_size
+        return HashTable._raw_hash(key) % array_size
+
+    @staticmethod
+    def _raw_hash(key: Hashable) -> int:
+        # Use custom hash function for strings (to show that I can implement a hash function),
+        # but otherwise use built-in hash so we don't unnecessarily restrict the hash table to only strings.
+        # (Unrealistic to re-implement hash functions for every possible Python type.)
+        if isinstance(key, str):
+            hasher = str_hash
+        else:
+            hasher = hash
+        return hasher(key)
 
     @staticmethod
     def _step_hash(key: Hashable, array_size: int) -> int:
         # I don't think this really matters too much.
-        return max(1, (33 * abs(hash(key))) % array_size)
+        return max(1, (33 * abs(HashTable._raw_hash(key))) % array_size)
 
     # Returns the smallest prime larger than x.
     # For x < 2, returns 2.

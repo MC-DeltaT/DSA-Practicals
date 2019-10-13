@@ -20,16 +20,19 @@ def read_network_file(file_path: str) -> SocialNetwork:
     # Note: allowed to use List for readlines().
     split_lines: Array[List[str]] = Array(len(lines))
     for i in range(len(split_lines)):
-        cols = lines[i].rstrip("\n").split(":")
-        if len(cols) not in (1, 2):
-            raise ValueError(f"line {i + 1} is invalid.")
+        line = lines[i].rstrip("\n")
+        cols = line.split(":")
+        if not line or len(cols) not in (1, 2):
+            raise ValueError(f"line {i + 1} has invalid format.")
         split_lines[i] = cols
 
     # Pre-scan file to get number of people.
     names = Set()
-    for columns in split_lines:
-        # Allow follow specification ("name1:name2") to "declare" both people.
-        for name in columns:
+    for i, columns in enumerate(split_lines, 1):
+        if len(columns) == 1:
+            name = columns[0]
+            if not name or name.isspace():
+                raise ValueError(f"line {i}: name cannot be blank or whitespace.")
             names.add(name)
 
     # Can't really predict number of posts so just guess 10 posts per person.
@@ -38,18 +41,45 @@ def read_network_file(file_path: str) -> SocialNetwork:
         network.add_person(name)
 
     # Terrible O(n^2) algorithm here, but probably no one's gonna input a huge file.
-    for person in network.people:
-        for i, columns in enumerate(split_lines):
-            if len(columns) == 2 and columns[0] == person.name:
-                person.follow(network.find_person(columns[1]))
+    for i, columns in enumerate(split_lines):
+        if len(columns) == 2:
+            try:
+                person1 = network.find_person(columns[0])
+                person2 = network.find_person(columns[1])
+                person1.follow(person2)
+            except ValueError as e:
+                raise ValueError(f"line {i}: {e}")
 
     return network
 
 
 # Reads an event file and applies the events to a network.
 def read_event_file(file_path: str, network: SocialNetwork) -> None:
-    # TODO
-    ...
+    with open(file_path) as file:
+        for i, line in enumerate(file, 1):
+            line = line.rstrip("\n")
+            cols = line.split(":")
+            if len(cols) != 3:
+                raise ValueError(f"line {i} has invalid format.")
+            if cols[0] in ("F", "f"):
+                try:
+                    person1 = network.find_person(cols[1])
+                    person2 = network.find_person(cols[2])
+                except ValueError as e:
+                    raise ValueError(f"line {i}: {e}")
+                try:
+                    person1.follow(person2)
+                except ValueError:
+                    # Ignore if already following.
+                    pass
+            elif cols[0] in ("P", "p"):
+                try:
+                    person = network.find_person(cols[1])
+                except ValueError as e:
+                    raise ValueError(f"line {i}: {e}")
+                person.make_post(cols[2])
+            else:
+                raise ValueError(f"line {i} has invalid format.")
 
 
 # Returns an array of a network's people sorted descending by follower count.
