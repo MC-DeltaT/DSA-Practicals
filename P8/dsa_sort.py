@@ -1,4 +1,4 @@
-from typing import Callable, MutableSequence
+from typing import Callable, MutableSequence, Tuple
 
 import numpy
 
@@ -7,6 +7,7 @@ __all__ = [
     "bubble_sort",
     "insertion_sort",
     "mergesort",
+    "quicksort_3w",
     "quicksort_bad",
     "quicksort_mo3",
     "selection_sort"
@@ -111,6 +112,41 @@ def quicksort_mo3(seq: MutableSequence) -> None:
         return median
 
     _quicksort(seq, 0, len(seq) - 1, _mo3_pivot)
+
+
+# Uses 3 partitions.
+def quicksort_3w(seq) -> None:
+    # Algorithm reference:
+    # Chakraborty, Arnab. 2019. "3-Way QuickSort (Dutch National Flag)." Tutorials Point.
+    # https://www.tutorialspoint.com/3-way-quicksort-dutch-national-flag
+
+    def _partition(seq, left: int, right: int) -> Tuple[int, int]:
+        if right - left <= 1:
+            if seq[right] < seq[left]:
+                seq[right], seq[left] = seq[left], seq[right]
+            return left, right
+        else:
+            mid = left
+            pivot = seq[right]
+            while mid <= right:
+                if seq[mid] < pivot:
+                    seq[left], seq[mid] = seq[mid], seq[left]
+                    left += 1
+                    mid += 1
+                elif seq[mid] == pivot:
+                    mid += 1
+                elif seq[mid] > pivot:
+                    seq[mid], seq[right] = seq[right], seq[mid]
+                    right -= 1
+            return left - 1, mid
+
+    def _quicksort_3w(seq, left: int, right: int) -> None:
+        if left < right:
+            i, j = _partition(seq, left, right)
+            _quicksort_3w(seq, left, i)
+            _quicksort_3w(seq, j, right)
+
+    _quicksort_3w(seq, 0, len(seq) - 1)
 
 
 def _quicksort(seq: MutableSequence, left: int, right: int,
