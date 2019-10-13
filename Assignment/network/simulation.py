@@ -12,14 +12,16 @@ __all__ = [
 # TODO: documentation.
 def evolve_network(network: SocialNetwork, like_chance: float, follow_chance: float) -> None:
     def interact(person: Person, post: Post, new_follows: SinglyLinkedList[Person]) -> None:
-        if random.random() < like_chance:
-            try:
-                person.like_post(post)
-            except ValueError:
-                # Ignore if the post has already been liked.
-                pass
-            if random.random() < follow_chance:
-                new_follows.insert_last(post.poster)
+        # Doesn't make sense for a person to interact with their own post via network evolution.
+        if person is not post.poster:
+            if random.random() < like_chance:
+                try:
+                    person.like_post(post)
+                except ValueError:
+                    # Ignore if the post has already been liked.
+                    pass
+                if random.random() < follow_chance:
+                    new_follows.insert_last(post.poster)
 
     if not 0 <= like_chance <= 1.0:
         raise ValueError(f"like_chance must be in the range [0, 1], but got {like_chance}.")

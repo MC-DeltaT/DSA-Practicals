@@ -67,11 +67,11 @@ def setup_network() -> SocialNetwork:
 
 
 def run_simulation(network: SocialNetwork, like_chance: float, follow_chance: float) -> None:
+    annotate_solution(network)
     try:
         with open(f"simulation_{round(time.time())}.txt", "w") as output_file:
             i = 1
-            # TODO? completion detection.
-            while i <= 20: #not simulation_complete(network):
+            while not simulation_complete(network):
                 print(f"Timestep {i}")
                 evolve_network(network, like_chance, follow_chance)
                 log_timestep(network, i, output_file)
@@ -104,24 +104,59 @@ def log_timestep(network: SocialNetwork, timestep: int, file) -> None:
     file.write("\n")
 
 
-# TODO?
-# def simulation_complete(network: SocialNetwork) -> bool:
-#     def _connected(person: Person) -> Set[Person]:
-#         def __connected(person: Person, connected: Set[Person]) -> None:
-#             connected.add(person)
-#             for p in person.following:
-#                 if connected.add(p):
-#                     __connected(p, connected)
-#                 for post in p.liked_posts:
-#                     if connected.add(post.poster):
-#                         __connected(post.poster, connected)
-#
-#         connected = Set(network._expected_people)
-#         __connected(person, connected)
-#         return connected
-#
-#     saturated = True
-#     for person in takewhile(lambda _: saturated, network.people):
-#         if person.following_count < len(_connected(person)) - 1:
-#             saturated = False
-#     return saturated
+# The entire simulation can actually be solved instantly via a series of
+# depth-first searches. So we can "solve" it once at the start and then keep
+# that info around to check when the simulation is complete.
+def annotate_solution(network: SocialNetwork) -> None:
+    # Counts the maximum number of liked posts and following people obtainable via network simulation.
+    def possible_connections(network: SocialNetwork, person: Person) -> Tuple[int, int]:
+        # Effectively a depth-first search, following only edges that represent
+        # "follows person" and "likes post".
+        def _possible_connections(target_person: Person, person: Person,
+                                  likes: int, following: int) -> Tuple[int, int]:
+            person._visited = True
+            if person is not target_person:
+                for p in person.posts:
+                    if not hasattr(p, "_visited"):
+                        likes += 1
+                        # People target_person is following will be counted separately,
+                        # don't want to double up.
+                        if not target_person.is_following(p.poster):
+                            following += 1
+                        p._visited = True
+            for p in person.liked_posts:
+                if p.poster is not target_person:
+                    if not hasattr(p, "_visited"):
+                        likes += 1
+                        if not target_person.is_following(p.poster):
+                            following += 1
+                        p._visited = True
+            for p in person.following:
+                if not hasattr(p, "_visited"):
+                    # Network probably won't be enormous, so recursion should be ok.
+                    # Can easily change if not the case.
+                    likes, following = _possible_connections(target_person, p, likes, following)
+            return likes, following
+
+        likes, following = _possible_connections(person, person, 0, person.following_count)
+        for person in network.people:
+            try:
+                del person._visited
+            except AttributeError:
+                pass
+        return likes, following
+
+    for person in network.people:
+        person._max_liked_posts, person._max_following = possible_connections(network, person)
+
+
+# Checks if the network has evolved to a state where it will not evolve any further,
+# i.e. when everyone is following everyone they can, and everyone likes every post they can.
+def simulation_complete(network: SocialNetwork) -> bool:
+    saturated = True
+    for person in takewhile(lambda _: saturated, network.people):
+        if person.following_count < person._max_following:
+            saturated = False
+        elif person.liked_post_count < person._max_liked_posts:
+            saturated = False
+    return saturated
