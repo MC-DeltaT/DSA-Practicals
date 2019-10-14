@@ -1,10 +1,20 @@
 from network import evolve_network, people_by_popularity, Person, posts_by_popularity,\
     read_network_file, read_event_file, SocialNetwork
 
+from contextlib import ExitStack
 from itertools import takewhile
 import sys
 import time
 from typing import Tuple
+
+
+# If true, enables logging of network state and statistics each timestep.
+# (Probably want this off if stat mode is enabled below.)
+LOGS_ENABLED = False
+
+# If true, enables logging of additional network statistics for performance analysis.
+# (Mainly for my own experimentation.)
+STATS_ENABLED = True
 
 
 def main() -> None:
@@ -48,33 +58,61 @@ def get_probabilities() -> Tuple[float, float]:
 def setup_network() -> SocialNetwork:
     network = None
     try:
+        print("Reading network file... ", end="")
         network = read_network_file(sys.argv[2])
+        print("done")
     except FileNotFoundError:
-        print("Error: network file not found.")
+        print("Error: file not found.")
     except (OSError, ValueError) as e:
-        print(f"Error reading network file: {e}")
+        print(f"Error: {e}")
     else:
         try:
+            print("Reading event file... ", end="")
             read_event_file(sys.argv[3], network)
+            print("done")
         except FileNotFoundError:
-            print("Error: event file not found.")
+            print("Error: file not found.")
             network = None
         except (OSError, ValueError) as e:
-            print(f"Error reading event file: {e}")
+            print(f"Error: {e}")
             network = None
     return network
 
 
 def run_simulation(network: SocialNetwork, like_chance: float, follow_chance: float) -> None:
+    print("Preliminary calculations... ", end="")
     annotate_solution(network)
+    print("done")
     try:
-        with open(f"simulation_{round(time.time())}.txt", "w") as output_file:
+        timestamp = round(time.time())
+        with ExitStack() as stack:
+            if LOGS_ENABLED:
+                output_file = stack.enter_context(open(f"simulation_{timestamp}.txt", "w"))
+            if STATS_ENABLED:
+                stats_file = stack.enter_context(open(f"stats_{timestamp}.txt", "w"))
+                stats_file.write(f"{network.person_count} {like_chance} {follow_chance}\n")
+
             i = 1
-            while not simulation_complete(network):
-                print(f"Timestep {i}")
-                evolve_network(network, like_chance, follow_chance)
-                log_timestep(network, i, output_file)
+            done = False
+            while not done:
+                print(f"Running timestep {i}... ", end="")
+
+                start_time = time.perf_counter()
+                new_likes, new_follows = evolve_network(network, like_chance, follow_chance)
+                end_time = time.perf_counter()
+
+                if LOGS_ENABLED:
+                    log_timestep(network, i, output_file)
+
+                if STATS_ENABLED:
+                    like_completion, follow_completion = completion_analysis(network)
+                    stats_file.write(f"{i} {end_time - start_time} {new_likes} {new_follows} {like_completion} {follow_completion}\n")
+                    done = like_completion == 1 and follow_completion == 1
+                else:
+                    done = simulation_complete(network)
+
                 i += 1
+                print("done")
             print("Simulation complete.")
     except OSError as e:
         print(f"Error writing to output file: {e}")
@@ -116,21 +154,18 @@ def annotate_solution(network: SocialNetwork) -> None:
                                   likes: int, following: int) -> Tuple[int, int]:
             person._visited = True
             if person is not target_person:
+                new_likes = 0
                 for p in person.posts:
                     if not hasattr(p, "_visited"):
-                        likes += 1
-                        # People target_person is following will be counted separately,
-                        # don't want to double up.
-                        if not target_person.is_following(p.poster):
-                            following += 1
+                        new_likes += 1
                         p._visited = True
-            for p in person.liked_posts:
-                if p.poster is not target_person:
-                    if not hasattr(p, "_visited"):
-                        likes += 1
-                        if not target_person.is_following(p.poster):
-                            following += 1
-                        p._visited = True
+                likes += new_likes
+                if new_likes > 0:
+                    # People target_person is following will be counted separately,
+                    # don't want to double up.
+                    if not target_person.is_following(person):
+                        following += 1
+            # Don't need to inspect liked posts, since network always starts with no post likes.
             for p in person.following:
                 if not hasattr(p, "_visited"):
                     # Network probably won't be enormous, so recursion should be ok.
@@ -165,3 +200,19 @@ def simulation_complete(network: SocialNetwork) -> bool:
         elif person.liked_post_count < person._max_liked_posts:
             saturated = False
     return saturated
+
+
+# Returns a tuple of (like completion, follow completion) indicating the percentage of simulation
+# completion for likes and follows.
+# I.e gives the proportion of likes/follows that currently exist in the network out of all possible likes/follows.
+def completion_analysis(network: SocialNetwork) -> Tuple[float, float]:
+    actual_likes = 0
+    actual_follows = 0
+    max_likes = 0
+    max_follows = 0
+    for person in network.people:
+        actual_likes += person.liked_post_count
+        actual_follows += person.following_count
+        max_likes += person._max_liked_posts
+        max_follows += person._max_following
+    return actual_likes / max_likes, actual_follows / max_follows

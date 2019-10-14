@@ -1,5 +1,5 @@
 from .network import Person, Post, SocialNetwork
-from dsa import Array, quicksort, Set
+from dsa import Array, mergesort, Set
 
 from typing import List
 
@@ -8,7 +8,7 @@ __all__ = [
     "people_by_popularity",
     "posts_by_popularity",
     "read_event_file",
-    "read_network_file",
+    "read_network_file"
 ]
 
 
@@ -80,12 +80,16 @@ def read_event_file(file_path: str, network: SocialNetwork) -> None:
 # Returns an array of a network's people sorted descending by follower count.
 def people_by_popularity(network: SocialNetwork) -> Array[Person]:
     people = Array(network.people)
-    quicksort(people, reverse=True, key=lambda p: p.follower_count)
+    # Mergesort to avoid slowdown of quicksort if many people have similar follower count.
+    # (Which will happen as simulations progress.)
+    mergesort(people, reverse=True, key=lambda p: p.follower_count)
     return people
 
 
 # Returns an array of a network's posts sorted descending by like count.
 def posts_by_popularity(network: SocialNetwork) -> Array[Post]:
     posts = Array(network.posts)
-    quicksort(posts, reverse=True, key=lambda p: p.like_count)
+    # Mergesort to avoid slowdown of quicksort if many posts have similar like count.
+    # (Which will happen as simulations progress.)
+    mergesort(posts, reverse=True, key=lambda p: p.like_count)
     return posts

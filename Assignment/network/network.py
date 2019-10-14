@@ -180,7 +180,7 @@ class Post:
 
     def __str__(self) -> str:
         # In most cases probably don't want to see full text (could be very long).
-        return f"{self.poster.name}: {self.short_text}"
+        return f"{self.poster.name} - {self.short_text}"
 
     def __repr__(self) -> str:
         return f"Post(poster={self._poster}, id={self._id}, text={self._text})"
@@ -200,10 +200,10 @@ class SocialNetwork:
     # expected_post: expected total number of posts to be present in the network.
     # (These are solely for performance optimisation.)
     def __init__(self, expected_people: int, expected_posts: int) -> None:
-        self._people: HashTable[str, Person] = HashTable(expected_people)
-        self._post_count = 0
         self._expected_people = max(expected_people, 1)
         self._expected_posts = max(expected_posts, 1)
+        self._people: HashTable[str, Person] = HashTable(self._expected_people)
+        self._post_count = 0
 
     @property
     def person_count(self) -> int:
