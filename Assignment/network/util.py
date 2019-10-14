@@ -40,7 +40,6 @@ def read_network_file(file_path: str) -> SocialNetwork:
     for name in names:
         network.add_person(name)
 
-    # Terrible O(n^2) algorithm here, but probably no one's gonna input a huge file.
     for i, columns in enumerate(split_lines):
         if len(columns) == 2:
             try:

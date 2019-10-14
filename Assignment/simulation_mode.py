@@ -1,4 +1,3 @@
-from dsa import Set
 from network import evolve_network, people_by_popularity, Person, posts_by_popularity,\
     read_network_file, read_event_file, SocialNetwork
 
@@ -106,7 +105,7 @@ def log_timestep(network: SocialNetwork, timestep: int, file) -> None:
 
 # The entire simulation can actually be solved instantly via a series of
 # depth-first searches. So we can "solve" it once at the start and then keep
-# that info around to check when the simulation is complete.
+# that info around to check when the full simulation is complete.
 def annotate_solution(network: SocialNetwork) -> None:
     # Counts the maximum number of liked posts and following people obtainable via network simulation.
     def possible_connections(network: SocialNetwork, person: Person) -> Tuple[int, int]:
@@ -144,6 +143,11 @@ def annotate_solution(network: SocialNetwork) -> None:
                 del person._visited
             except AttributeError:
                 pass
+            for post in person.posts:
+                try:
+                    del post._visited
+                except AttributeError:
+                    pass
         return likes, following
 
     for person in network.people:
