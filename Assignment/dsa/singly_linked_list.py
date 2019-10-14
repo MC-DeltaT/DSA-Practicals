@@ -1,6 +1,4 @@
-from .impl import SinglyLinkedListBase
-
-from typing import Collection, Iterable, Iterator, Optional, TypeVar
+from typing import Collection, Generic, Iterable, Iterator, Optional, TypeVar
 
 
 __all__ = [
@@ -13,55 +11,104 @@ T = TypeVar("T")
 
 # Singly-linked, double-ended linked list.
 class SinglyLinkedList(Collection[T]):
-    def __init__(self, items: Optional[Iterable[T]] = None) -> None:
-        self._base: SinglyLinkedListBase[T] = SinglyLinkedListBase()
-        if items:
-            for item in items:
+    class _Node(Generic[T]):
+        # A lot of list traversal and node access, this actually measurably improves performance.
+        __slots__ = ("data", "next")
+
+        def __init__(self, data: T, next: Optional["SinglyLinkedList._Node[T]"]) -> None:
+            self.data = data
+            self.next = next
+
+    def __init__(self, data: Optional[Iterable] = None) -> None:
+        # Use of "before head" node allows uniform removal of nodes anywhere in list.
+        self._before_head: "SinglyLinkedList._Node[T]" = self._Node(None, None)
+        # Pointing tail to "before head" when list is empty simplifies certain operations.
+        self._tail: "SinglyLinkedList._Node[T]" = self._before_head
+        self._size = 0
+
+        if data:
+            for item in data:
                 self.insert_last(item)
-
-    @property
-    def is_empty(self) -> bool:
-        return len(self) == 0
-
-    def insert_first(self, item: T) -> None:
-        self._base.insert_first(item)
-
-    def insert_last(self, item: T) -> None:
-        self._base.insert_last(item)
 
     def peek_first(self) -> T:
         self._raise_for_empty()
-        return self._base.head.data
+        return self._head.data
 
     def peek_last(self) -> T:
         self._raise_for_empty()
-        return self._base.tail.data
+        return self._tail.data
+
+    def insert_first(self, item: T) -> None:
+        node = self._Node(item, self._head)
+        self._before_head.next = node
+        if self._size == 0:
+            self._tail = node
+        self._size += 1
+
+    def insert_last(self, item: T) -> None:
+        node = self._Node(item, None)
+        self._tail.next = node
+        self._tail = node
+        self._size += 1
 
     def remove_first(self) -> None:
         self._raise_for_empty()
-        self._base.remove_after(self._base.before_head)
+        self._remove_after(self._before_head)
 
     def remove(self, item: T) -> None:
-        self._base.remove(item)
+        removed = False
+        prev = self._before_head
+        node = self._head
+        while node and not removed:
+            if node.data == item:
+                self._remove_after(prev)
+                removed = True
+            else:
+                prev = node
+                node = node.next
+        if not removed:
+            raise ValueError(f"Item `{item}` does not exist in list.")
 
     def remove_all(self) -> None:
-        self._base.remove_all()
+        self._before_head.next = None
+        self._tail = self._before_head
+        self._size = 0
 
     def copy(self) -> "SinglyLinkedList[T]":
         return SinglyLinkedList(self)
 
     def __len__(self) -> int:
-        return self._base.size
+        return self._size
 
     def __iter__(self) -> Iterator[T]:
-        return iter(self._base)
+        node = self._head
+        while node is not None:
+            yield node.data
+            node = node.next
 
-    # Only for Collection requirement.
     def __contains__(self, item: T) -> bool:
+        # Must be implemented to satisfy Collection.
+
         return item in iter(self)
 
     def __repr__(self) -> str:
-        return repr(self._base)
+        return "[" + ", ".join(map(repr, self)) + "]"
+
+    @property
+    def _head(self) -> "SinglyLinkedList._Node[T]":
+        return self._before_head.next
+
+    # Removes the node after the given node.
+    # (Can't remove node from itself in singly-linked, because can't access previous node.)
+    def _remove_after(self, node: "SinglyLinkedList._Node[T]") -> None:
+        assert node.next is not None
+        prev = node
+        node = prev.next
+        prev.next = node.next
+        if node.next is None:
+            # Removed last node.
+            self._tail = prev
+        self._size -= 1
 
     def _raise_for_empty(self) -> None:
         if len(self) == 0:

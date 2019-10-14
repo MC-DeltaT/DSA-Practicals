@@ -64,13 +64,9 @@ def read_event_file(file_path: str, network: SocialNetwork) -> None:
                 try:
                     person1 = network.find_person(cols[1])
                     person2 = network.find_person(cols[2])
+                    person1.follow(person2)
                 except ValueError as e:
                     raise ValueError(f"line {i}: {e}")
-                try:
-                    person1.follow(person2)
-                except ValueError:
-                    # Ignore if already following.
-                    pass
             elif cols[0] in ("P", "p"):
                 try:
                     person = network.find_person(cols[1])

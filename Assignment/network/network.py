@@ -140,6 +140,7 @@ class Post:
         self._id = id
         self._text = text
         self._liked_by: Set[Person] = Set(self._poster._network._expected_people)
+        self._poster._network._post_count += 1
 
     @property
     def poster(self) -> Person:
@@ -187,6 +188,7 @@ class Post:
     def _delete(self) -> None:
         for person in self._liked_by:
             person._liked_posts.remove(self)
+        self._poster._network._post_count -= 1
         self._liked_by = None
         self._poster = None
         self._text = None
@@ -199,6 +201,7 @@ class SocialNetwork:
     # (These are solely for performance optimisation.)
     def __init__(self, expected_people: int, expected_posts: int) -> None:
         self._people: HashTable[str, Person] = HashTable(expected_people)
+        self._post_count = 0
         self._expected_people = max(expected_people, 1)
         self._expected_posts = max(expected_posts, 1)
 
@@ -217,7 +220,7 @@ class SocialNetwork:
 
     @property
     def post_count(self) -> int:
-        return sum(person.post_count for person in self.people)
+        return self._post_count
 
     def add_person(self, name) -> Person:
         if name in self._people:

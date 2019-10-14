@@ -75,6 +75,7 @@ def run_simulation(network: SocialNetwork, like_chance: float, follow_chance: fl
                 evolve_network(network, like_chance, follow_chance)
                 log_timestep(network, i, output_file)
                 i += 1
+            print("Simulation complete.")
     except OSError as e:
         print(f"Error writing to output file: {e}")
 

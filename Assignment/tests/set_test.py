@@ -1,5 +1,6 @@
 from dsa import Set, SinglyLinkedList
 
+import pickle
 import random
 from unittest import TestCase
 
@@ -122,3 +123,16 @@ class SetTest(TestCase):
             self.assertIn(item, items, "re-add iter item present")
             visited += 1
         self.assertEqual(visited, len(items), "re-add item item count")
+
+    def test_serialise(self) -> None:
+        s = pickle.loads(pickle.dumps(self._set))
+        self.assertEqual(0, len(s))
+        for _ in s:
+            self.fail()
+
+        for i in random.sample(range(self.TEST_SIZE), self.TEST_SIZE):
+            self._set.add(i)
+        s = pickle.loads(pickle.dumps(self._set))
+        self.assertEqual(self.TEST_SIZE, len(s))
+        for i in random.sample(range(self.TEST_SIZE), self.TEST_SIZE):
+            self.assertIn(i, s)
