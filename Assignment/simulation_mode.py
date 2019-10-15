@@ -6,6 +6,7 @@ from itertools import takewhile
 import sys
 import time
 from typing import Tuple
+from uuid import uuid4
 
 
 # If true, enables logging of network state and statistics each timestep.
@@ -87,9 +88,9 @@ def run_simulation(network: SocialNetwork, like_chance: float, follow_chance: fl
         timestamp = round(time.time())
         with ExitStack() as stack:
             if LOGS_ENABLED:
-                output_file = stack.enter_context(open(f"simulation_{timestamp}.txt", "w"))
+                output_file = stack.enter_context(unique_file("simulation", ".txt"))
             if STATS_ENABLED:
-                stats_file = stack.enter_context(open(f"stats_{timestamp}.txt", "w"))
+                stats_file = stack.enter_context(unique_file("stats", ".txt"))
                 stats_file.write(f"{network.person_count} {like_chance} {follow_chance}\n")
 
             i = 1
@@ -216,3 +217,18 @@ def completion_analysis(network: SocialNetwork) -> Tuple[float, float]:
         max_likes += person._max_liked_posts
         max_follows += person._max_following
     return actual_likes / max_likes, actual_follows / max_follows
+
+
+# Returns a new file with a unique filename with the given prefix and extension.
+# The file is guaranteed to not already exist.
+def unique_file(prefix: str, extension: str):
+    done = False
+    while not done:
+        file_path = f"{prefix}-{uuid4()}{extension}"
+        try:
+            file = open(file_path, "x")
+        except FileExistsError:
+            pass
+        else:
+            done = True
+    return file

@@ -3,19 +3,19 @@ from network_generator import generate_network
 import subprocess
 
 
-PEOPLE_MIN = 50
-PEOPLE_MAX = 300
-PEOPLE_STEP = 50
+PEOPLE_MIN = 10
+PEOPLE_MAX = 100
+PEOPLE_STEP = 10
 
 # Integer percentages only.
-LIKE_CHANCE_MIN = 10
+LIKE_CHANCE_MIN = 20
 LIKE_CHANCE_MAX = 100
-LIKE_CHANCE_STEP = 10
+LIKE_CHANCE_STEP = 20
 
 # Integer percentages only.
-FOLLOW_CHANCE_MIN = 10
+FOLLOW_CHANCE_MIN = 20
 FOLLOW_CHANCE_MAX = 100
-FOLLOW_CHANCE_STEP = 10
+FOLLOW_CHANCE_STEP = 20
 
 
 for person_count in range(PEOPLE_MIN, PEOPLE_MAX + PEOPLE_STEP, PEOPLE_STEP):
