@@ -1,3 +1,4 @@
+from common import unique_file
 from network import evolve_network, people_by_popularity, Person, posts_by_popularity,\
     read_network_file, read_event_file, SocialNetwork
 
@@ -6,7 +7,6 @@ from itertools import takewhile
 import sys
 import time
 from typing import Tuple
-from uuid import uuid4
 
 
 # If true, enables logging of network state and statistics each timestep.
@@ -217,18 +217,3 @@ def completion_analysis(network: SocialNetwork) -> Tuple[float, float]:
         max_likes += person._max_liked_posts
         max_follows += person._max_following
     return actual_likes / max_likes, actual_follows / max_follows
-
-
-# Returns a new file with a unique filename with the given prefix and extension.
-# The file is guaranteed to not already exist.
-def unique_file(prefix: str, extension: str):
-    done = False
-    while not done:
-        file_path = f"{prefix}-{uuid4()}{extension}"
-        try:
-            file = open(file_path, "x")
-        except FileExistsError:
-            pass
-        else:
-            done = True
-    return file

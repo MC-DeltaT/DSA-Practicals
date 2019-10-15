@@ -1,5 +1,7 @@
-from network_generator import generate_network
+from common import unique_file
+from network_generator import random_network
 
+import os
 import subprocess
 
 
@@ -24,8 +26,28 @@ for person_count in range(PEOPLE_MIN, PEOPLE_MAX + PEOPLE_STEP, PEOPLE_STEP):
         for follow_chance in range(FOLLOW_CHANCE_MIN, FOLLOW_CHANCE_MAX + FOLLOW_CHANCE_STEP, FOLLOW_CHANCE_STEP):
             follow_chance /= 100
             print(f"~~~~~~~~~  people={person_count} like_chance={like_chance} follow_chance={follow_chance} ~~~~~~~~~")
+            netfile_path = None
+            eventfile_path = None
             try:
-                generate_network(person_count, 5, 4, 2, 2.5)
-                subprocess.run(f"python SocialSim.py -s netfile_random.txt eventfile_random.txt {like_chance} {follow_chance}")
+                network, events = random_network(person_count, 5, 4, 2, 2.5)
+
+                with unique_file("netfile", ".txt") as netfile:
+                    netfile_path = netfile.name
+                    netfile.write(network)
+
+                with unique_file("eventfile", ".txt") as eventfile:
+                    eventfile_path = eventfile.name
+                    eventfile.write(events)
+
+                subprocess.run(f"python SocialSim.py -s {netfile_path} {eventfile_path} {like_chance} {follow_chance}")
             except Exception as e:
-                print(e)
+                print(f"Error: {repr(e)}")
+            finally:
+                if netfile_path is not None:
+                    try:
+                        os.remove(netfile_path)
+                    except OSError: pass
+                if eventfile_path is not None:
+                    try:
+                        os.remove(eventfile_path)
+                    except OSError: pass
