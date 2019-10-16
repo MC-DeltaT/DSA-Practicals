@@ -5,6 +5,7 @@ import pickle
 from typing import Optional, Tuple
 
 
+# Entry point of simulation mode. Shows the main menu.
 def main() -> None:
     network = None
     like_chance = None
@@ -65,6 +66,8 @@ def main() -> None:
         print()
 
 
+# Returns a network loaded from a user-specified network file.
+# Prints errors and returns None if no valid network can be loaded.
 def load_network() -> SocialNetwork:
     path = input("Enter network file path: ")
     try:
@@ -78,6 +81,8 @@ def load_network() -> SocialNetwork:
     return network
 
 
+# Returns a network loaded from a user-specified serialised network file.
+# Prints errors and returns None if no valid network can be loaded.
 def load_network_serialised() -> SocialNetwork:
     path = input("Enter serialised file path: ")
     network = None
@@ -99,6 +104,7 @@ def load_network_serialised() -> SocialNetwork:
     return network
 
 
+# Returns a tuple of (like chance, follow chance) set by the user (with validation).
 def set_probabilities() -> Tuple[float, float]:
     def _get_probability(name: str) -> float:
         probability = None
@@ -120,6 +126,7 @@ def set_probabilities() -> Tuple[float, float]:
     return like_chance, follow_chance
 
 
+# If network is None, prints and error and returns False, otherwise does nothing and returns True.
 def assert_network(network: Optional[SocialNetwork]) -> bool:
     if network is None:
         print("Error: network has not been loaded yet.")
@@ -129,11 +136,13 @@ def assert_network(network: Optional[SocialNetwork]) -> bool:
     return res
 
 
+# Creates a new post by the given person, with user-supplied content.
 def new_post(person: Person) -> None:
     text = input("Enter post text: ")
     person.make_post(text)
 
 
+# Saves the given network is serialised (pickled) form to user-specified file path.
 def save_network_serialised(network: SocialNetwork) -> None:
     if assert_network(network):
         path = input("Enter file path: ")
@@ -147,6 +156,8 @@ def save_network_serialised(network: SocialNetwork) -> None:
             print(f"Error serialising network: {e}")
 
 
+# Displays people and who follows them, and posts and who likes them.
+# (Displayed adjacency list style.)
 def display_network(network: SocialNetwork) -> None:
     if assert_network(network):
         print("Following:")
@@ -167,6 +178,7 @@ def display_network(network: SocialNetwork) -> None:
             print("<no posts>")
 
 
+# Displays people sorted by follower count and posts sorted by like count.
 def network_statistics(network: SocialNetwork) -> None:
     if assert_network(network):
         print("People by popularity:")
@@ -185,6 +197,7 @@ def network_statistics(network: SocialNetwork) -> None:
             print("<no posts>")
 
 
+# Saves the given network in network file format to a user-supplied file path.
 def save_network(network: SocialNetwork) -> None:
     if assert_network(network):
         path = input("Enter file path: ")
@@ -199,6 +212,7 @@ def save_network(network: SocialNetwork) -> None:
             print(f"Error writing to file: {e}")
 
 
+# Executes one simulation timestep on the given network with the given like and follow chances.
 def run_timestep(network: SocialNetwork, like_chance: float, follow_chance: float) -> None:
     if assert_network(network):
         if None in (like_chance, follow_chance):
@@ -209,6 +223,7 @@ def run_timestep(network: SocialNetwork, like_chance: float, follow_chance: floa
             print(" done")
 
 
+# Adds a person to the network with the user-supplied name (with validation).
 def add_person(network: SocialNetwork) -> None:
     if assert_network(network):
         name = input("Enter new person's name: ")
@@ -221,6 +236,7 @@ def add_person(network: SocialNetwork) -> None:
                 print(f"Error: {e}")
 
 
+# Gets a person's name from the user, and if they exist, enters a submenu for various operations on that person.
 def inspect_person(network: SocialNetwork) -> None:
     if assert_network(network):
         name = input("Enter name of person to view: ")
@@ -268,6 +284,7 @@ def inspect_person(network: SocialNetwork) -> None:
                 print()
 
 
+# Displays post count, follower count and following count for a person.
 def person_statistics(person: Person) -> None:
     print(f"{person.name}'s statistics:")
     print(f"  Post count: {person.post_count}")
@@ -275,6 +292,7 @@ def person_statistics(person: Person) -> None:
     print(f"  Following count: {person.following_count}")
 
 
+# Sets the given person to be following a person specified by the user.
 def follow_person(network: SocialNetwork, person: Person) -> None:
     name = input("Enter name of person to follow: ")
     try:
@@ -284,6 +302,7 @@ def follow_person(network: SocialNetwork, person: Person) -> None:
         print(f"Error: {e}")
 
 
+# Sets the given person to not be following a person specified by the user.
 def unfollow_person(network: SocialNetwork, person: Person) -> None:
     name = input("Enter name of person to unfollow: ")
     try:

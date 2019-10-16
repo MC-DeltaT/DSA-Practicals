@@ -11,6 +11,7 @@ def print_usage() -> None:
     print("\t Simulation mode: python3 SocialSim.py -s <netfile> <eventfile> <like_prob> <follow_prob>")
 
 
+# Calls to random number generators are present in application; seed with time.
 random.seed()
 if len(sys.argv) == 2 and sys.argv[1] == "-i":
     interactive_mode.main()

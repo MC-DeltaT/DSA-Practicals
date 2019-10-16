@@ -11,13 +11,16 @@ from typing import Tuple
 
 # If true, enables logging of network state and statistics each timestep.
 # (Probably want this off if stat mode is enabled below.)
+# TODO: set to true for submission.
 LOGS_ENABLED = False
 
 # If true, enables logging of additional network statistics for performance analysis.
-# (Mainly for my own experimentation.)
+# (Mainly for my own experimentation, feel free to ignore.)
+# TODO: set to false for submission.
 STATS_ENABLED = True
 
 
+# Simulation mode entry point.
 def main() -> None:
     like_chance, follow_chance = get_probabilities()
     valid = None not in (like_chance, follow_chance)
@@ -56,6 +59,7 @@ def get_probabilities() -> Tuple[float, float]:
     return like_probability, follow_probability
 
 
+# Returns a network loaded from the network and event files specified in the command line.
 def setup_network() -> SocialNetwork:
     network = None
     try:
@@ -80,12 +84,12 @@ def setup_network() -> SocialNetwork:
     return network
 
 
+# Runs the simulation to completion and logs each timestep if enabled.
 def run_simulation(network: SocialNetwork, like_chance: float, follow_chance: float) -> None:
     print("Preliminary calculations... ", end="")
     annotate_solution(network)
     print("done")
     try:
-        timestamp = round(time.time())
         with ExitStack() as stack:
             if LOGS_ENABLED:
                 output_file = stack.enter_context(unique_file("simulation", ".txt"))
@@ -119,6 +123,8 @@ def run_simulation(network: SocialNetwork, like_chance: float, follow_chance: fl
         print(f"Error writing to output file: {e}")
 
 
+# Writes people sorted by follower count, posts by like count, following list,
+# and post like lists to the given file.
 def log_timestep(network: SocialNetwork, timestep: int, file) -> None:
     file.write(f"Timestep {timestep}\n")
 
@@ -206,6 +212,7 @@ def simulation_complete(network: SocialNetwork) -> bool:
 # Returns a tuple of (like completion, follow completion) indicating the percentage of simulation
 # completion for likes and follows.
 # I.e gives the proportion of likes/follows that currently exist in the network out of all possible likes/follows.
+# Only used if additional statistics are enabled.
 def completion_analysis(network: SocialNetwork) -> Tuple[float, float]:
     actual_likes = 0
     actual_follows = 0

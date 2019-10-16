@@ -5,26 +5,28 @@ import os
 import subprocess
 
 
-PEOPLE_MIN = 10
-PEOPLE_MAX = 100
-PEOPLE_STEP = 10
+PEOPLE_MIN = 225
+PEOPLE_MAX = 225
+PEOPLE_STEP = 50
 
 # Integer percentages only.
-LIKE_CHANCE_MIN = 20
-LIKE_CHANCE_MAX = 100
-LIKE_CHANCE_STEP = 20
+LIKE_CHANCE_START = 100
+LIKE_CHANCE_STOP = 10
+LIKE_CHANCE_STEP = -10
 
 # Integer percentages only.
-FOLLOW_CHANCE_MIN = 20
-FOLLOW_CHANCE_MAX = 100
-FOLLOW_CHANCE_STEP = 20
+FOLLOW_CHANCE_START = 100
+FOLLOW_CHANCE_STOP = 10
+FOLLOW_CHANCE_STEP = -10
 
 
 for person_count in range(PEOPLE_MIN, PEOPLE_MAX + PEOPLE_STEP, PEOPLE_STEP):
-    for like_chance in range(LIKE_CHANCE_MIN, LIKE_CHANCE_MAX + LIKE_CHANCE_STEP, LIKE_CHANCE_STEP):
-        like_chance /= 100
-        for follow_chance in range(FOLLOW_CHANCE_MIN, FOLLOW_CHANCE_MAX + FOLLOW_CHANCE_STEP, FOLLOW_CHANCE_STEP):
-            follow_chance /= 100
+    like_chance_percent = LIKE_CHANCE_START
+    while min(LIKE_CHANCE_START, LIKE_CHANCE_STOP) <= like_chance_percent <= max(LIKE_CHANCE_START, LIKE_CHANCE_STOP):
+        like_chance = like_chance_percent / 100
+        follow_chance_percent = FOLLOW_CHANCE_START
+        while min(FOLLOW_CHANCE_START, FOLLOW_CHANCE_STOP) <= follow_chance_percent <= max(FOLLOW_CHANCE_START, FOLLOW_CHANCE_STOP):
+            follow_chance = follow_chance_percent / 100
             print(f"~~~~~~~~~  people={person_count} like_chance={like_chance} follow_chance={follow_chance} ~~~~~~~~~")
             netfile_path = None
             eventfile_path = None
@@ -51,3 +53,6 @@ for person_count in range(PEOPLE_MIN, PEOPLE_MAX + PEOPLE_STEP, PEOPLE_STEP):
                     try:
                         os.remove(eventfile_path)
                     except OSError: pass
+
+            follow_chance_percent += FOLLOW_CHANCE_STEP
+        like_chance_percent += LIKE_CHANCE_STEP
