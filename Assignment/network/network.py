@@ -69,7 +69,7 @@ class Person:
         if person is self:
             raise ValueError(f"Cannot follow self.")
         if not self._following.add(person):
-            raise ValueError(f"{person} already follows {self}.")
+            raise ValueError(f"{self} already follows {person}.")
         assert person._followers.add(self)
 
     def unfollow(self, person: "Person") -> None:

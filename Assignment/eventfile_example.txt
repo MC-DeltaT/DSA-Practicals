@@ -119,7 +119,7 @@ P:Woody:Reach for the sky!:2
 P:Woody:This town ain't big enough for the two of us!
 P:Sid:The Toys! The Toys are alive!:3
 R:Mrs Nesbitt
-U:Woody:Sergeant
+U:Sergeant:Woody
 P:Woody:Hey, Buzz! You're flying!
 P:Buzz Lightyear:This isn't flying, this is falling with style!
 P:Woody:To infinity and beyond!:3
