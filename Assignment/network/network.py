@@ -20,13 +20,13 @@ class Person:
         self._followers: Set["Person"] = Set(network._expected_people)
         self._following: Set["Person"] = Set(network._expected_people)
         self._liked_posts: Set["Post"] = Set(network._expected_posts)
+        # Posts need an ID unique for their poster for hashing and equality checking purposes.
         self._post_id = 1
 
     @property
     def name(self) -> str:
         return self._name
 
-    # Posts are ordered most recent first.
     @property
     def posts(self) -> SizedIterable["Post"]:
         return SizedIterable(self._posts, self.post_count)
@@ -104,6 +104,9 @@ class Person:
         return isinstance(other, Person) and other._name == self._name
 
     def __hash__(self) -> int:
+        # Person objects are actually unique, but since they are stored in hash tables which
+        # may be serialised, object identity cannot be used as a hash, because it will change
+        # between different instances of the application.
         return str_hash(self._name)
 
     def __str__(self) -> str:
@@ -182,7 +185,10 @@ class Post:
         return isinstance(other, Post) and other._poster == self._poster and other._id == self._id
 
     def __hash__(self) -> int:
-        # Hopefully this doesn't collide often.
+        # Post objects are actually unique, but since they are stored in hash tables which
+        # may be serialised, object identity cannot be used as a hash, because it will change
+        # between different instances of the application.
+        # Hopefully this approach doesn't collide often.
         return hash(self._poster) + str_hash(self._text) + self._id
 
     def __str__(self) -> str:

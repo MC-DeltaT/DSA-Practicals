@@ -10,7 +10,7 @@ Requirements:
     Python version 3.5 or newer (tested only for v3.6 and newer)
     numpy
 
-Miscellaneous files:
+Main important files:
     Documentation.pdf - code documentation.
     eventfile_example.txt - example valid event file (sourced from assignment specification).
     netfile_example.txt - example valid network file (sourced from assignment specification).

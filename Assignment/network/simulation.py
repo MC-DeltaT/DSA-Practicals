@@ -12,15 +12,17 @@ __all__ = [
 
 # Evolves a network with the following rules:
 #   Each person "interacts" with the posts and liked posts of people they follow.
-#   For each post interacted with, there is a like_chance chance of the person liking that post.
+#   For each post interacted with, there is a like_chance chance of the person liking that post,
+#   enhanced by the posts' clickbait factor.
 #   If the person likes the post, then there is a follow_chance chance of the person following the post's creator.
 # Returns a tuple of (total new likes, total new follows)
 def evolve_network(network: SocialNetwork, like_chance: float, follow_chance: float) -> Tuple[int, int]:
     def interact(person: Person, post: Post, new_likes: SinglyLinkedList[Post],
                  new_follows: SinglyLinkedList[Person]) -> None:
         # Doesn't make sense for a person to interact with their own post via network evolution.
+        # Can use object identity since people are always unique within 1 instance of the application.
         if person is not post.poster:
-            # Assuming clickbait factor is maximum 10, of course it isn't given anywhere in the assignment spec.
+            # Assuming clickbait factor is 0 to 10, it isn't given anywhere in the assignment spec.
             extra_chance = (1 - like_chance) * (post.clickbait_factor / 10)
             if random.random() <= like_chance + extra_chance:
                 new_likes.insert_last(post)
