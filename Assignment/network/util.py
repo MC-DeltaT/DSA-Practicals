@@ -45,7 +45,7 @@ def read_network_file(file_path: str) -> SocialNetwork:
             try:
                 person1 = network.find_person(columns[0])
                 person2 = network.find_person(columns[1])
-                person1.follow(person2)
+                person2.follow(person1)
             except ValueError as e:
                 raise ValueError(f"line {i}: {e}")
 
@@ -58,21 +58,50 @@ def read_event_file(file_path: str, network: SocialNetwork) -> None:
         for i, line in enumerate(file, 1):
             line = line.rstrip("\n")
             cols = line.split(":")
-            if len(cols) != 3:
-                raise ValueError(f"line {i} has invalid format.")
-            if cols[0] in ("F", "f"):
+            if len(cols) == 2 and cols[0] in ("A", "a"):
+                name = cols[1]
+                if not name or name.isspace():
+                    raise ValueError(f"line {i}: name cannot be blank or whitespace.")
+                try:
+                    network.add_person(name)
+                except ValueError as e:
+                    raise ValueError(f"line {i}: {e}")
+            elif len(cols) == 2 and cols[0] in ("R", "r"):
+                try:
+                    network.delete_person(network.find_person(cols[1]))
+                except ValueError as e:
+                    raise ValueError(f"line {i}: {e}")
+            elif len(cols) == 3 and cols[0] in ("F", "f"):
                 try:
                     person1 = network.find_person(cols[1])
                     person2 = network.find_person(cols[2])
                     person1.follow(person2)
                 except ValueError as e:
                     raise ValueError(f"line {i}: {e}")
-            elif cols[0] in ("P", "p"):
+            elif len(cols) == 3 and cols[0] in ("U", "u"):
                 try:
-                    person = network.find_person(cols[1])
+                    person1 = network.find_person(cols[1])
+                    person2 = network.find_person(cols[2])
+                    person1.unfollow(person2)
                 except ValueError as e:
                     raise ValueError(f"line {i}: {e}")
-                person.make_post(cols[2])
+            elif len(cols) == 3 and cols[0] in ("P", "p"):
+                try:
+                    person = network.find_person(cols[1])
+                    person.make_post(cols[2])
+                except ValueError as e:
+                    raise ValueError(f"line {i}: {e}")
+            elif len(cols) == 4 and cols[0] in ("P", "p"):
+                try:
+                    clickbait_factor = int(cols[3])
+                except ValueError:
+                    raise ValueError(f"line {i}: invalid clickbait factor.")
+                else:
+                    try:
+                        person = network.find_person(cols[1])
+                        person.make_post(cols[2], clickbait_factor)
+                    except ValueError as e:
+                        raise ValueError(f"line {i}: {e}")
             else:
                 raise ValueError(f"line {i} has invalid format.")
 

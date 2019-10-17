@@ -13,9 +13,7 @@ Requirements:
 Miscellaneous files:
     Documentation.pdf - code documentation.
     eventfile_example.txt - example valid event file (sourced from assignment specification).
-    eventfile_invalid.txt - example invalid event file.
     netfile_example.txt - example valid network file (sourced from assignment specification).
-    netfile_invalid.txt - example invalid network file.
     Report.pdf - investigation and report.
     SocialSim.py - main application entry point.
     unit_test.py - unit test entry point.

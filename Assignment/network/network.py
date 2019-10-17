@@ -2,6 +2,7 @@ from common import SizedIterable, str_hash
 from dsa import HashTable, Set, SinglyLinkedList
 
 from itertools import chain
+from typing import Optional
 
 
 __all__ = [
@@ -58,8 +59,8 @@ class Person:
     def liked_post_count(self) -> int:
         return len(self._liked_posts)
 
-    def make_post(self, text: str) -> "Post":
-        post = Post(self, self._post_id, text)
+    def make_post(self, text: str, clickbait_factor: Optional[int] = 0) -> "Post":
+        post = Post(self, self._post_id, text, clickbait_factor)
         self._post_id += 1
         self._posts.insert_first(post)
         return post
@@ -135,10 +136,12 @@ class Person:
 
 
 class Post:
-    def __init__(self, poster: Person, id: int, text: str) -> None:
+    def __init__(self, poster: Person, id: int, text: str,
+                 clickbait_factor: Optional[int] = 0) -> None:
         self._poster = poster
         self._id = id
         self._text = text
+        self._clickbait = clickbait_factor
         self._liked_by: Set[Person] = Set(self._poster._network._expected_people)
         self._poster._network._post_count += 1
 
@@ -149,6 +152,10 @@ class Post:
     @property
     def text(self) -> str:
         return self._text
+
+    @property
+    def clickbait_factor(self) -> int:
+        return self._clickbait
 
     # Abbreviated version of the post text.
     @property
@@ -192,6 +199,7 @@ class Post:
         self._liked_by = None
         self._poster = None
         self._text = None
+        self._clickbait = None
         # Responsibility of caller to remove this object from poster's list of posts.
 
 

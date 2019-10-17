@@ -20,7 +20,9 @@ def evolve_network(network: SocialNetwork, like_chance: float, follow_chance: fl
                  new_follows: SinglyLinkedList[Person]) -> None:
         # Doesn't make sense for a person to interact with their own post via network evolution.
         if person is not post.poster:
-            if random.random() <= like_chance:
+            # Assuming clickbait factor is maximum 10, of course it isn't given anywhere in the assignment spec.
+            extra_chance = (1 - like_chance) * (post.clickbait_factor / 10)
+            if random.random() <= like_chance + extra_chance:
                 new_likes.insert_last(post)
                 if random.random() <= follow_chance:
                     new_follows.insert_last(post.poster)

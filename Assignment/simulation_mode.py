@@ -12,12 +12,12 @@ from typing import Tuple
 # If true, enables logging of network state and statistics each timestep.
 # (Probably want this off if stat mode is enabled below.)
 # TODO: set to true for submission.
-LOGS_ENABLED = False
+LOGS_ENABLED = True
 
 # If true, enables logging of additional network statistics for performance analysis.
 # (Mainly for my own experimentation, feel free to ignore.)
 # TODO: set to false for submission.
-STATS_ENABLED = True
+STATS_ENABLED = False
 
 
 # Simulation mode entry point.
