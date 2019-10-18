@@ -1,5 +1,5 @@
 from .network import Person, Post, SocialNetwork
-from dsa import Array, SinglyLinkedList
+from dsa import Array, Set, SinglyLinkedList
 
 import random
 from typing import Tuple
@@ -37,15 +37,18 @@ def evolve_network(network: SocialNetwork, like_chance: float, follow_chance: fl
     changes = Array(network.person_count)
 
     for i, person in enumerate(network.people):
-        new_likes: SinglyLinkedList[Post] = SinglyLinkedList()
-        new_follows: SinglyLinkedList[Person] = SinglyLinkedList()
-
+        # Don't want a person to interact with a post more than once, doesn't make sense.
+        interactable_posts: Set[Post] = Set(network._expected_posts)
         for following in person.following:
             for post in following.posts:
-                interact(person, post, new_likes, new_follows)
-
+                interactable_posts.add(post)
             for post in following.liked_posts:
-                interact(person, post, new_likes, new_follows)
+                interactable_posts.add(post)
+
+        new_likes: SinglyLinkedList[Post] = SinglyLinkedList()
+        new_follows: SinglyLinkedList[Person] = SinglyLinkedList()
+        for post in interactable_posts:
+            interact(person, post, new_likes, new_follows)
 
         changes[i] = (person, new_likes, new_follows)
 
