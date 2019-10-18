@@ -12,9 +12,6 @@ T = TypeVar("T")
 # Singly-linked, double-ended linked list.
 class SinglyLinkedList(Collection[T]):
     class _Node(Generic[T]):
-        # A lot of list traversal and node access, this actually measurably improves performance.
-        __slots__ = ("data", "next")
-
         def __init__(self, data: T, next: Optional["SinglyLinkedList._Node[T]"]) -> None:
             self.data = data
             self.next = next

@@ -1,7 +1,8 @@
-from common import SizedIterable, str_hash
+from common import SizedIterable
 from dsa import HashTable, Set, SinglyLinkedList
 
 from itertools import chain
+import random
 from typing import Optional
 
 
@@ -13,15 +14,14 @@ __all__ = [
 
 
 class Person:
-    def __init__(self, name: str, network: "SocialNetwork") -> None:
+    def __init__(self, name: str, id: int, network: "SocialNetwork") -> None:
         self._name = name
         self._network = network
+        self._id = id
         self._posts: SinglyLinkedList["Post"] = SinglyLinkedList()
         self._followers: Set["Person"] = Set(network._expected_people)
         self._following: Set["Person"] = Set(network._expected_people)
         self._liked_posts: Set["Post"] = Set(network._expected_posts)
-        # Posts need an ID unique for their poster for hashing and equality checking purposes.
-        self._post_id = 1
 
     @property
     def name(self) -> str:
@@ -60,8 +60,7 @@ class Person:
         return len(self._liked_posts)
 
     def make_post(self, text: str, clickbait_factor: Optional[int] = 1) -> "Post":
-        post = Post(self, self._post_id, text, clickbait_factor)
-        self._post_id += 1
+        post = Post(self, random.randrange(2 ** 32), text, clickbait_factor)
         self._posts.insert_first(post)
         return post
 
@@ -82,14 +81,7 @@ class Person:
     def like_post(self, post: "Post") -> None:
         if not self._liked_posts.add(post):
             raise ValueError(f"{self} already likes {post}.")
-        post._liked_by.add(self)
-
-    def unlike_post(self, post: "Post") -> None:
-        try:
-            self._liked_posts.remove(post)
-            post._liked_by.remove(self)
-        except KeyError:
-            raise ValueError(f"{self} doesn't like {post}")
+        post._liked_by.insert_last(self)
 
     def is_following(self, person: "Person") -> bool:
         return person in self._following
@@ -107,7 +99,7 @@ class Person:
         # Person objects are actually unique, but since they are stored in hash tables which
         # may be serialised, object identity cannot be used as a hash, because it will change
         # between different instances of the application.
-        return str_hash(self._name)
+        return self._id
 
     def __str__(self) -> str:
         return self.name
@@ -135,6 +127,7 @@ class Person:
         self._posts = None
 
         self._network = None
+        self._id = None
         self._name = "[DELETED]"
 
 
@@ -145,7 +138,7 @@ class Post:
         self._id = id
         self._text = text
         self._clickbait = clickbait_factor
-        self._liked_by: Set[Person] = Set(self._poster._network._expected_people)
+        self._liked_by: SinglyLinkedList[Person] = SinglyLinkedList()
         self._poster._network._post_count += 1
 
     @property
@@ -177,9 +170,6 @@ class Post:
     def like_count(self) -> int:
         return len(self._liked_by)
 
-    def is_liked_by(self, person: Person) -> bool:
-        return person in self._liked_by
-
     def __eq__(self, other) -> bool:
         # Note: posts with the same text are not necessarily the same post!
         return isinstance(other, Post) and other._poster == self._poster and other._id == self._id
@@ -188,8 +178,7 @@ class Post:
         # Post objects are actually unique, but since they are stored in hash tables which
         # may be serialised, object identity cannot be used as a hash, because it will change
         # between different instances of the application.
-        # Hopefully this approach doesn't collide often.
-        return hash(self._poster) + str_hash(self._text) + self._id
+        return self._id
 
     def __str__(self) -> str:
         # In most cases probably don't want to see full text (could be very long).
@@ -204,6 +193,7 @@ class Post:
         self._poster._network._post_count -= 1
         self._liked_by = None
         self._poster = None
+        self._id = None
         self._text = None
         self._clickbait = None
         # Responsibility of caller to remove this object from poster's list of posts.
@@ -239,7 +229,7 @@ class SocialNetwork:
     def add_person(self, name) -> Person:
         if name in self._people:
             raise ValueError(f'Person with name "{name}" already exists in network.')
-        person = Person(name, self)
+        person = Person(name, random.randrange(2 ** 32), self)
         self._people[name] = person
         return person
 

@@ -1,5 +1,5 @@
 from .network import Person, Post, SocialNetwork
-from dsa import Array, Set, SinglyLinkedList
+from dsa import Array, SinglyLinkedList
 
 import random
 from typing import Tuple
@@ -37,19 +37,18 @@ def evolve_network(network: SocialNetwork, like_chance: float, follow_chance: fl
     changes = Array(network.person_count)
 
     for i, person in enumerate(network.people):
-        # Don't want a person to interact with a post more than once, doesn't make sense.
-        interactable_posts: Set[Post] = Set(network._expected_posts)
-        for following in person.following:
-            for post in following.posts:
-                interactable_posts.add(post)
-            for post in following.liked_posts:
-                interactable_posts.add(post)
-
         new_likes: SinglyLinkedList[Post] = SinglyLinkedList()
         new_follows: SinglyLinkedList[Person] = SinglyLinkedList()
-        for post in interactable_posts:
-            interact(person, post, new_likes, new_follows)
-
+        for following in person.following:
+            for post in following.posts:
+                # Mark the post so it isn't interacted with again in this timestep by this person.
+                if post.__dict__.get("_last_interaction") is not person:
+                    interact(person, post, new_likes, new_follows)
+                    post._last_interaction = person
+            for post in following.liked_posts:
+                if post.__dict__.get("_last_interaction") is not person:
+                    interact(person, post, new_likes, new_follows)
+                    post._last_interaction = person
         changes[i] = (person, new_likes, new_follows)
 
     new_like_count = 0
@@ -72,4 +71,11 @@ def evolve_network(network: SocialNetwork, like_chance: float, follow_chance: fl
                 pass
             else:
                 new_follow_count += 1
+
+    for post in network.posts:
+        try:
+            delattr(post, "_last_interaction")
+        except AttributeError:
+            pass
+
     return new_like_count, new_follow_count

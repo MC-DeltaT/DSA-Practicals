@@ -61,7 +61,7 @@ class HashTable(Generic[K, V]):
             raise ValueError(f"capacity must be >=1, got {capacity}.")
         capacity = self._next_prime(ceil(capacity / self.MAX_LOAD_FACTOR) + 1)
         self._array: Array["HashTable._Entry[K, V]"] = Array(capacity)
-        for i in range(self.capacity):
+        for i in range(capacity):
             self._array[i] = self._Entry()
         self._used = 0
 
