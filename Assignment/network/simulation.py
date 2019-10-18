@@ -22,9 +22,7 @@ def evolve_network(network: SocialNetwork, like_chance: float, follow_chance: fl
         # Doesn't make sense for a person to interact with their own post via network evolution.
         # Can use object identity since people are always unique within 1 instance of the application.
         if person is not post.poster:
-            # Assuming clickbait factor is 0 to 10, it isn't given anywhere in the assignment spec.
-            extra_chance = (1 - like_chance) * (post.clickbait_factor / 10)
-            if random.random() <= like_chance + extra_chance:
+            if random.random() <= like_chance * post.clickbait_factor:
                 new_likes.insert_last(post)
                 if random.random() <= follow_chance:
                     new_follows.insert_last(post.poster)

@@ -59,7 +59,7 @@ class Person:
     def liked_post_count(self) -> int:
         return len(self._liked_posts)
 
-    def make_post(self, text: str, clickbait_factor: Optional[int] = 0) -> "Post":
+    def make_post(self, text: str, clickbait_factor: Optional[int] = 1) -> "Post":
         post = Post(self, self._post_id, text, clickbait_factor)
         self._post_id += 1
         self._posts.insert_first(post)
@@ -140,7 +140,7 @@ class Person:
 
 class Post:
     def __init__(self, poster: Person, id: int, text: str,
-                 clickbait_factor: Optional[int] = 0) -> None:
+                 clickbait_factor: Optional[int] = 1) -> None:
         self._poster = poster
         self._id = id
         self._text = text
