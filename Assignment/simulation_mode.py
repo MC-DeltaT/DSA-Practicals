@@ -19,9 +19,15 @@ LOGS_ENABLED = True
 # TODO: set to false for submission.
 STATS_ENABLED = False
 
-# Default hashtable load for the network.
-# A high value seems to cause the simulation to be more performant.
-NETWORK_HASHTABLE_LOAD = 10
+# Default parameters for the network's hash tables.
+# Keeping the hash tables at high load factor seems to make the simulation more performant.
+HASHTABLE_ARGS = {
+    "load_factor": 10,
+    "min_load_factor": 5,
+    "max_load_factor": 10,
+    "shrink_factor": 0.1,
+    "growth_factor": 0.5
+}
 
 
 # Simulation mode entry point.
@@ -65,26 +71,41 @@ def get_probabilities() -> Tuple[float, float]:
 
 # Returns a network loaded from the network and event files specified in the command line.
 def setup_network() -> SocialNetwork:
+    netfile_path = sys.argv[2]
+    eventfile_path = sys.argv[3]
     network = None
+
     try:
-        print("Reading network file... ", end="")
-        network = read_network_file(sys.argv[2])
+        print("Prescanning event file... ", end="")
+        post_count = prescan_post_count(eventfile_path)
         print("done")
     except FileNotFoundError:
         print("Error: file not found.")
-    except (OSError, ValueError) as e:
+    except OSError as e:
         print(f"Error: {e}")
     else:
+        network_args = HASHTABLE_ARGS.copy()
+        network_args["expected_posts"] = post_count
+
         try:
-            print("Reading event file... ", end="")
-            read_event_file(sys.argv[3], network)
+            print("Reading network file... ", end="")
+            network = read_network_file(netfile_path, **network_args)
             print("done")
         except FileNotFoundError:
             print("Error: file not found.")
-            network = None
         except (OSError, ValueError) as e:
             print(f"Error: {e}")
-            network = None
+        else:
+            try:
+                print("Reading event file... ", end="")
+                read_event_file(eventfile_path, network)
+                print("done")
+            except FileNotFoundError:
+                print("Error: file not found.")
+                network = None
+            except (OSError, ValueError) as e:
+                print(f"Error: {e}")
+                network = None
     return network
 
 
@@ -228,3 +249,16 @@ def completion_analysis(network: SocialNetwork) -> Tuple[float, float]:
         max_likes += person._max_liked_posts
         max_follows += person._max_following
     return actual_likes / max_likes, actual_follows / max_follows
+
+
+# Scans an event file to get the total number of posts.
+# This is so that the network's expected_posts argument can be set, for optimum performance.
+# Does not check the event file for errors.
+def prescan_post_count(eventfile_path: str) -> int:
+    count = 0
+    with open(eventfile_path) as file:
+        for line in file:
+            cols = line.rstrip("\n").split(":")
+            if len(cols) in (3, 4) and cols[0] in ("P", "p"):
+                count += 1
+    return count

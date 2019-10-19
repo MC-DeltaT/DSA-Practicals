@@ -19,9 +19,9 @@ class Person:
         self._network = network
         self._id = id
         self._posts: SinglyLinkedList["Post"] = SinglyLinkedList()
-        self._followers: Set["Person"] = Set(capacity=network._expected_people, load_factor=network._hashtable_load)
-        self._following: Set["Person"] = Set(capacity=network._expected_people, load_factor=network._hashtable_load)
-        self._liked_posts: Set["Post"] = Set(capacity=network._expected_posts, load_factor=network._hashtable_load)
+        self._followers: Set["Person"] = Set(capacity=network._expected_people, **network._hashtable_args)
+        self._following: Set["Person"] = Set(capacity=network._expected_people, **network._hashtable_args)
+        self._liked_posts: Set["Post"] = Set(capacity=network._expected_posts, **network._hashtable_args)
 
     @property
     def name(self) -> str:
@@ -194,14 +194,15 @@ class Post:
 class SocialNetwork:
     # expected_people: expected total number of people to be present in the network.
     # expected_post: expected total number of posts to be present in the network.
-    # hashtable_load: the starting load factor for hash tables used.
+    # hashtable_args: arguments supplied to the HashTable constructor.
     # (These are solely for performance optimisation.)
     def __init__(self, expected_people: Optional[int] = None, expected_posts: Optional[int] = None,
-                 hashtable_load: Optional[int] = None) -> None:
-        self._expected_people = expected_people
-        self._expected_posts = expected_posts
-        self._hashtable_load = hashtable_load
-        self._people: HashTable[str, Person] = HashTable(capacity=self._expected_people, load_factor=hashtable_load)
+                 **hashtable_args) -> None:
+        self._expected_people = max(expected_people, 1) if expected_people is not None else None
+        self._expected_posts = max(expected_posts, 1) if expected_posts is not None else None
+        hashtable_args.pop("capacity", None)
+        self._hashtable_args = hashtable_args
+        self._people: HashTable[str, Person] = HashTable(capacity=self._expected_people, **hashtable_args)
         self._post_count = 0
 
     @property

@@ -12,7 +12,7 @@ T = TypeVar("T", bound=Hashable)
 
 
 class Set(Generic[T]):
-    # As this set is implemented with a hashtable, all constructor arguments are passed through to it.
+    # As this set is implemented with HashTable, all constructor arguments are passed through to it.
     def __init__(self, *args, **kwargs) -> None:
         self._hashtable: HashTable[T, None] = HashTable(*args, **kwargs)
 

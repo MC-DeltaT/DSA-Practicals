@@ -29,30 +29,45 @@ class HashTable(Generic[K, V]):
         def __repr__(self) -> str:
             return f"{self.key}: {self.value}"
 
-    # On item removal, load factors <= this amount trigger the capacity to be reduced.
-    # Should be >=0.
-    MIN_LOAD_FACTOR = 0.5
-    # On item insertion, load factors >= this amount trigger the capacity to be increased.
-    # Should be >=0.
-    MAX_LOAD_FACTOR = 5
-    # Minimum fraction decrease in capacity when a capacity reduction is triggered.
-    # (Unless the resulting capacity would be too small to fit all key, value pairs.)
-    MIN_SHRINK = 0.25
-    # Minimum fraction increase in capacity when a capacity increase is triggered.
-    MIN_GROWTH = 0.5
-
     # Initialises the hashtable with the given starting capacity and load factor.
     # capacity defaults to 100 and must be >= 1 if provided.
-    # load_factor defaults to MAX_LOAD_FACTOR and must be >0 if provided.
-    def __init__(self, capacity: Optional[int] = None, load_factor: Optional[float] = None) -> None:
+    # load_factor defaults to max_load_factor and must be >0 if provided.
+    # min_load_factor: on item removal, load factors <= this amount trigger the capacity to be reduced.
+    # max_load_factor: on item insertion, load factors >= this amount trigger the capacity to be increased.
+    # shrink_factor: fraction decrease in capacity when a capacity reduction is triggered.
+    #                (Unless the resulting capacity would be too small to fit all items.)
+    # growth_factor: fraction increase in capacity when a capacity increase is triggered.
+    def __init__(self, capacity: Optional[int] = None, load_factor: Optional[float] = None,
+                 min_load_factor: Optional[float] = None, max_load_factor: Optional[float] = None,
+                 shrink_factor: Optional[float] = None, growth_factor: Optional[float] = None) -> None:
         if capacity is None:
             capacity = 100
         if capacity < 1:
             raise ValueError(f"capacity must be >=1, got {capacity}.")
+        if min_load_factor is None:
+            min_load_factor = 0.5
+        if min_load_factor < 0:
+            raise ValueError(f"min_load_factor must be >=0, got {min_load_factor}.")
+        if max_load_factor is None:
+            max_load_factor = 2
+        if max_load_factor <= 0:
+            raise ValueError(f"max_load_factor must be >0, got {max_load_factor}.")
+        if shrink_factor is None:
+            shrink_factor = 0.25
+        if not 0 <= shrink_factor < 1:
+            raise ValueError(f"shrink_factor must be >=0 and <1, got {shrink_factor}.")
+        if growth_factor is None:
+            growth_factor = 0.5
+        if growth_factor < 0:
+            raise ValueError(f"growth_factor must be >=0, got {growth_factor}.")
         if load_factor is None:
-            load_factor = self.MAX_LOAD_FACTOR
+            load_factor = max_load_factor
         if load_factor <= 0:
             raise ValueError(f"load_factor must be >0, got {load_factor}.")
+        self._min_load_factor = min_load_factor
+        self._max_load_factor = max_load_factor
+        self._shrink_factor = shrink_factor
+        self._growth_factor = growth_factor
         capacity = max(1, round(capacity / load_factor))
         self._array: Array[SinglyLinkedList["HashTable._Entry[K, V]"]] = Array(capacity)
         for i in range(capacity):
@@ -75,7 +90,7 @@ class HashTable(Generic[K, V]):
     # Returns a bool indicating if the key was new.
     def set(self, key: K, value: V) -> bool:
         res = self._put(key, value)
-        if self.load_factor >= self.MAX_LOAD_FACTOR:
+        if self.load_factor >= self._max_load_factor:
             self._increase_capacity()
         return res
 
@@ -99,7 +114,7 @@ class HashTable(Generic[K, V]):
             raise KeyError(f"Key `{key}` not in hash table.")
         else:
             self._size -= 1
-            if self.load_factor <= self.MIN_LOAD_FACTOR:
+            if self.load_factor <= self._min_load_factor:
                 self._decrease_capacity()
 
     def __contains__(self, key: K) -> bool:
@@ -147,17 +162,17 @@ class HashTable(Generic[K, V]):
             self._size += 1
         return not exists
 
-    # Increases the capacity by at least the amount specified by MIN_GROWTH.
+    # Increases the capacity by at least the amount specified by _growth_factor.
     def _increase_capacity(self) -> None:
         assert self._capacity > 0
-        assert self.MIN_GROWTH > 0
-        new_capacity = ceil(self._capacity * (1.0 + self.MIN_GROWTH))
+        assert self._growth_factor >= 0
+        new_capacity = ceil(self._capacity * (1.0 + self._growth_factor))
         self._set_capacity(new_capacity)
 
-    # Decreases the capacity by the amount specified by MIN_SHRINK, if possible.
+    # Decreases the capacity by the amount specified by _shrink_factor, if possible.
     def _decrease_capacity(self) -> None:
-        assert 0 <= self.MIN_SHRINK < 1
-        new_capacity = floor(self._capacity * (1.0 - self.MIN_SHRINK))
+        assert 0 <= self._shrink_factor < 1
+        new_capacity = floor(self._capacity * (1.0 - self._shrink_factor))
         new_capacity = max(new_capacity, 1)
         self._set_capacity(new_capacity)
 
