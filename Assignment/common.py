@@ -25,6 +25,7 @@ class SizedIterable(Iterable[T], Sized):
 
 
 def str_hash(s: str) -> int:
+    # Very simple hash function for performance reasons.
     res = 0
     for c in s:
         res = 33 * res + ord(c)
