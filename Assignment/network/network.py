@@ -92,9 +92,6 @@ class Person:
     def likes_post(self, post: "Post") -> bool:
         return post in self._liked_posts
 
-    def __eq__(self, other) -> bool:
-        return isinstance(other, Person) and other._name == self._name
-
     def __hash__(self) -> int:
         # Person objects are actually unique, but since they are stored in hash tables which
         # may be serialised, object identity cannot be used as a hash, because it will change
@@ -169,10 +166,6 @@ class Post:
     @property
     def like_count(self) -> int:
         return len(self._liked_by)
-
-    def __eq__(self, other) -> bool:
-        # Note: posts with the same text are not necessarily the same post!
-        return isinstance(other, Post) and other._poster == self._poster and other._id == self._id
 
     def __hash__(self) -> int:
         # Post objects are actually unique, but since they are stored in hash tables which
