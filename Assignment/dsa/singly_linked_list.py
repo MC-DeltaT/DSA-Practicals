@@ -12,9 +12,14 @@ T = TypeVar("T")
 # Singly-linked, double-ended linked list.
 class SinglyLinkedList(Collection[T]):
     class _Node(Generic[T]):
+        # Lots of linked list traversal, easy optimisation here.
+        __slots__ = ("data", "next")
+
         def __init__(self, data: T, next: Optional["SinglyLinkedList._Node[T]"]) -> None:
             self.data = data
             self.next = next
+
+    __slots__ = ("_before_head", "_head", "_size", "_tail")
 
     def __init__(self, data: Optional[Iterable] = None) -> None:
         # Use of "before head" node allows uniform removal of nodes anywhere in list.
