@@ -19,6 +19,7 @@ class SinglyLinkedList(Collection[T]):
     def __init__(self, data: Optional[Iterable] = None) -> None:
         # Use of "before head" node allows uniform removal of nodes anywhere in list.
         self._before_head: "SinglyLinkedList._Node[T]" = self._Node(None, None)
+        self._head: Optional["SinglyLinkedList._Node[T]"] = None
         # Pointing tail to "before head" when list is empty simplifies certain operations.
         self._tail: "SinglyLinkedList._Node[T]" = self._before_head
         self._size = 0
@@ -38,6 +39,7 @@ class SinglyLinkedList(Collection[T]):
     def insert_first(self, item: T) -> None:
         node = self._Node(item, self._head)
         self._before_head.next = node
+        self._head = node
         if self._size == 0:
             self._tail = node
         self._size += 1
@@ -46,12 +48,14 @@ class SinglyLinkedList(Collection[T]):
         node = self._Node(item, None)
         self._tail.next = node
         self._tail = node
+        self._head = self._before_head.next
         self._size += 1
 
     def remove_first(self) -> None:
         self._raise_for_empty()
         self._remove_after(self._before_head)
 
+    # Removes the first element that compares equal to item.
     def remove(self, item: T) -> None:
         removed = False
         prev = self._before_head
@@ -68,6 +72,7 @@ class SinglyLinkedList(Collection[T]):
 
     def remove_all(self) -> None:
         self._before_head.next = None
+        self._head = None
         self._tail = self._before_head
         self._size = 0
 
@@ -91,10 +96,6 @@ class SinglyLinkedList(Collection[T]):
     def __repr__(self) -> str:
         return "[" + ", ".join(map(repr, self)) + "]"
 
-    @property
-    def _head(self) -> "SinglyLinkedList._Node[T]":
-        return self._before_head.next
-
     # Removes the node after the given node.
     # (Can't remove node from itself in singly-linked, because can't access previous node.)
     def _remove_after(self, node: "SinglyLinkedList._Node[T]") -> None:
@@ -105,6 +106,7 @@ class SinglyLinkedList(Collection[T]):
         if node.next is None:
             # Removed last node.
             self._tail = prev
+        self._head = self._before_head.next
         self._size -= 1
 
     def _raise_for_empty(self) -> None:

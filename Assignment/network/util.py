@@ -13,7 +13,7 @@ __all__ = [
 
 
 # Creates a network from a network file.
-def read_network_file(file_path: str) -> SocialNetwork:
+def read_network_file(file_path: str, **network_args) -> SocialNetwork:
     with open(file_path) as file:
         lines = file.readlines()
 
@@ -35,8 +35,8 @@ def read_network_file(file_path: str) -> SocialNetwork:
                 raise ValueError(f"line {i}: name cannot be blank or whitespace.")
             names.add(name)
 
-    # Can't really predict number of posts so just guess 10 posts per person.
-    network = SocialNetwork(len(names), 10 * len(names))
+    network_args["expected_people"] = len(names)
+    network = SocialNetwork(**network_args)
     for name in names:
         network.add_person(name)
 

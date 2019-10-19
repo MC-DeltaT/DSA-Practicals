@@ -19,6 +19,10 @@ LOGS_ENABLED = True
 # TODO: set to false for submission.
 STATS_ENABLED = False
 
+# Default hashtable load for the network.
+# A high value seems to cause the simulation to be more performant.
+NETWORK_HASHTABLE_LOAD = 10
+
 
 # Simulation mode entry point.
 def main() -> None:

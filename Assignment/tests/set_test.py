@@ -18,8 +18,6 @@ class SetTest(TestCase):
         self._set = Set(self.TEST_SIZE // 10)
 
     def test_add_contains_1(self) -> None:
-        start_capacity = self._set._hashtable.capacity
-
         # Add unique items.
         for i in random.sample(range(self.TEST_SIZE), self.TEST_SIZE):
             self.assertNotIn(i, self._set, "pre-add contain check")
@@ -27,7 +25,6 @@ class SetTest(TestCase):
             self.assertIn(i, self._set, "immediate contain check")
 
         # Check again to make sure no funky stuff happens after resizes.
-        assert self._set._hashtable.capacity > start_capacity
         for i in random.sample(range(self.TEST_SIZE), self.TEST_SIZE):
             self.assertIn(i, self._set, "post-resize contain check")
 
@@ -68,7 +65,6 @@ class SetTest(TestCase):
             with self.assertRaises(KeyError):
                 self._set.remove(i)
 
-        start_capacity = self._set._hashtable.capacity
         for i in random.sample(range(self.TEST_SIZE), self.TEST_SIZE):
             self._set.add(i)
 
@@ -77,7 +73,6 @@ class SetTest(TestCase):
             self.assertNotIn(i, self._set, "immediate contain check")
 
         # Check again to make sure no funky stuff happens after resizes.
-        assert self._set._hashtable.capacity < start_capacity
         for i in random.sample(range(self.TEST_SIZE), self.TEST_SIZE):
             self.assertNotIn(i, self._set, "post-resize contain check")
 

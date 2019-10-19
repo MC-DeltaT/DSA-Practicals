@@ -1,11 +1,9 @@
-# Sourced from my Data Structures & Algorithms practical worksheet 6 submission,
-# with modifications.
-
 from .array import Array
+from .singly_linked_list import SinglyLinkedList
 from common import str_hash
 
-from itertools import count, takewhile
-from math import ceil, floor, sqrt
+from itertools import chain, takewhile
+from math import ceil, floor
 from typing import Generic, Hashable, Iterator, Optional, Tuple, TypeVar
 
 
@@ -20,88 +18,69 @@ V = TypeVar("V")
 
 class HashTable(Generic[K, V]):
     class _Entry(Generic[K, V]):
-        NEVER_USED = 0
-        PREV_USED = 1
-        USED = 2
-
-        def __init__(self, key: Optional[K] = None, value: Optional[V] = None,
-                     state: int = NEVER_USED) -> None:
-            self.state = state
+        def __init__(self, key: K, value: V) -> None:
             self.key = key
             self.value = value
 
+        def __eq__(self, key: K) -> bool:
+            return key == self.key
+
         # For debugging purposes only.
         def __repr__(self) -> str:
-            if self.state == self.USED:
-                res = f"{self.key}: {self.value}"
-            elif self.state == self.NEVER_USED:
-                res = "NEVER_USED"
-            elif self.state == self.PREV_USED:
-                res = "PREV_USED"
-            else:
-                raise AssertionError(f"Didn't expect state `{self.state}`.")
-            return res
+            return f"{self.key}: {self.value}"
 
-    # On delete(), load factors <= this amount trigger the capacity to be reduced.
-    # Should be in the range [0, 1].
-    MIN_LOAD_FACTOR = 0.1
-    # On put(), load factors >= this amount trigger the capacity to be increased.
-    # Should be in the range [0, 1].
-    MAX_LOAD_FACTOR = 0.7
+    # On item removal, load factors <= this amount trigger the capacity to be reduced.
+    # Should be >=0.
+    MIN_LOAD_FACTOR = 0.5
+    # On item insertion, load factors >= this amount trigger the capacity to be increased.
+    # Should be >=0.
+    MAX_LOAD_FACTOR = 5
     # Minimum fraction decrease in capacity when a capacity reduction is triggered.
     # (Unless the resulting capacity would be too small to fit all key, value pairs.)
-    MIN_SHRINK = 0.1
+    MIN_SHRINK = 0.25
     # Minimum fraction increase in capacity when a capacity increase is triggered.
     MIN_GROWTH = 0.5
 
-    # Initialises the hashtable with the given starting capacity.
-    # capacity must be >= 1 if provided.
-    def __init__(self, capacity: Optional[int] = 1000) -> None:
+    # Initialises the hashtable with the given starting capacity and load factor.
+    # capacity defaults to 100 and must be >= 1 if provided.
+    # load_factor defaults to MAX_LOAD_FACTOR and must be >0 if provided.
+    def __init__(self, capacity: Optional[int] = None, load_factor: Optional[float] = None) -> None:
+        if capacity is None:
+            capacity = 100
         if capacity < 1:
             raise ValueError(f"capacity must be >=1, got {capacity}.")
-        capacity = self._next_prime(ceil(capacity / self.MAX_LOAD_FACTOR) + 1)
-        self._array: Array["HashTable._Entry[K, V]"] = Array(capacity)
+        if load_factor is None:
+            load_factor = self.MAX_LOAD_FACTOR
+        if load_factor <= 0:
+            raise ValueError(f"load_factor must be >0, got {load_factor}.")
+        capacity = max(1, round(capacity / load_factor))
+        self._array: Array[SinglyLinkedList["HashTable._Entry[K, V]"]] = Array(capacity)
         for i in range(capacity):
-            self._array[i] = self._Entry()
-        self._used = 0
+            self._array[i] = SinglyLinkedList()
+        self._size = 0
 
-    # The ratio of key, value pairs currently stored to the capacity.
     @property
     def load_factor(self) -> float:
-        assert self.capacity > 0
-        return len(self) / self.capacity
+        return len(self) / self._capacity
 
-    # The maximum number of key, value pairs able to be stored in the hash table currently.
-    # Note: this amount automatically adjusts as the table grows and shrinks.
-    @property
-    def capacity(self) -> int:
-        return len(self._array)
+    # Returns an iterator of all key, value pairs.
+    def items(self) -> Iterator[Tuple[K, V]]:
+        return map(lambda entry: (entry.key, entry.value), chain.from_iterable(self._array))
+
+    # Iterates over all values.
+    def values(self) -> Iterator[V]:
+        return map(lambda entry: entry.value, chain.from_iterable(self._array))
 
     # Adds the key, value pair to the hashtable, or if the key already exists, updates the value.
     # Returns a bool indicating if the key was new.
     def set(self, key: K, value: V) -> bool:
         res = self._put(key, value)
-        # MAX_LOAD_FACTOR > 1 would prevent capacity increases, allowing load factor to reach 1, which will break things.
-        assert self.MAX_LOAD_FACTOR <= 1.0
         if self.load_factor >= self.MAX_LOAD_FACTOR:
             self._increase_capacity()
         return res
 
-    # Returns an iterator of all key, value pairs.
-    def items(self) -> Iterator[Tuple[K, V]]:
-        return map(lambda entry: (entry.key, entry.value),
-                   filter(lambda entry: entry.state == self._Entry.USED,
-                          self._array))
-
-    # Iterates over all values.
-    def values(self) -> Iterator[V]:
-        return map(lambda entry: entry.value,
-                   filter(lambda entry: entry.state == self._Entry.USED,
-                          self._array))
-
-    # The number of key, value pairs currently stored.
     def __len__(self) -> int:
-        return self._used
+        return self._size
 
     # Gets the value with the given key, or raises KeyError if there is no such key.
     def __getitem__(self, key: K) -> V:
@@ -113,13 +92,15 @@ class HashTable(Generic[K, V]):
 
     # Deletes the key, value pair with the given key, or raises KeyError if there is no such key.
     def __delitem__(self, key: K) -> None:
-        entry = self._get(key)
-        entry.state = self._Entry.PREV_USED
-        entry.key = None
-        entry.value = None
-        self._used -= 1
-        if self.load_factor <= self.MIN_LOAD_FACTOR:
-            self._decrease_capacity()
+        chain = self._array[self._hash(key, self._capacity)]
+        try:
+            chain.remove(key)
+        except ValueError:
+            raise KeyError(f"Key `{key}` not in hash table.")
+        else:
+            self._size -= 1
+            if self.load_factor <= self.MIN_LOAD_FACTOR:
+                self._decrease_capacity()
 
     def __contains__(self, key: K) -> bool:
         try:
@@ -132,94 +113,66 @@ class HashTable(Generic[K, V]):
 
     # Iterates the keys stored.
     def __iter__(self) -> Iterator[K]:
-        return map(lambda entry: entry.key,
-                   filter(lambda entry: entry.state == self._Entry.USED,
-                          self._array))
+        return map(lambda entry: entry.key, chain.from_iterable(self._array))
 
     def __repr__(self) -> str:
         return "{" + ", ".join(map(lambda p: f"{p[0]}: {p[1]}", self.items())) + "}"
 
-    # Inserts a key, value pair into the array, or updates an existing key's value.
-    # If the key is new, increments _used and returns True.
-    # The array must have at least one free entry.
-    def _put(self, key: K, value: V) -> bool:
-        # Algorithm assumes array never becomes 100% full.
-        assert len(self) < self.capacity
-        idx = self._hash(key, self.capacity)
-        step = self._step_hash(key, self.capacity)
-        done = False
-        while not done:
-            entry = self._array[idx]
-            free = entry.state != self._Entry.USED
-            if free or entry.key == key:
-                if free:
-                    entry.key = key
-                    entry.state = self._Entry.USED
-                    self._used += 1
-                entry.value = value
-                done = True
-            else:
-                idx = (idx + step) % self.capacity
-        return free
+    @property
+    def _capacity(self) -> int:
+        return len(self._array)
 
     # Gets the entry object with the given key, or raises KeyError if there is no such key.
     def _get(self, key: K) -> _Entry[K, V]:
-        idx = self._hash(key, self.capacity)
-        step = self._step_hash(key, self.capacity)
-        original_idx = idx
+        chain = self._array[self._hash(key, self._capacity)]
         found = False
-        while not found:
-            entry = self._array[idx]
-            if entry.state == self._Entry.USED and entry.key == key:
+        for entry in takewhile(lambda _: not found, chain):
+            if entry.key == key:
                 found = True
-            else:
-                if entry.state in (self._Entry.USED, self._Entry.PREV_USED):
-                    idx = (idx + step) % self.capacity
-                if entry.state == self._Entry.NEVER_USED or idx == original_idx:
-                    raise KeyError(f"Key `{key}` not in hash table.")
+        if not found:
+            raise KeyError(f"Key `{key}` not in hash table.")
         return entry
 
+    # Inserts a key, value pair into the array, or updates an existing key's value.
+    # If the key is new, increments _size and returns True.
+    def _put(self, key: K, value: V) -> bool:
+        chain = self._array[self._hash(key, self._capacity)]
+        exists = False
+        for entry in chain:
+            if entry.key == key:
+                entry.value = value
+                exists = True
+        if not exists:
+            chain.insert_last(self._Entry(key, value))
+            self._size += 1
+        return not exists
+
     # Increases the capacity by at least the amount specified by MIN_GROWTH.
-    # New capacity is a prime number.
     def _increase_capacity(self) -> None:
-        assert self.capacity > 0
+        assert self._capacity > 0
         assert self.MIN_GROWTH > 0
-        new_capacity = ceil(self.capacity * (1.0 + self.MIN_GROWTH))
-        new_capacity = self._next_prime(new_capacity)
+        new_capacity = ceil(self._capacity * (1.0 + self.MIN_GROWTH))
         self._set_capacity(new_capacity)
 
     # Decreases the capacity by the amount specified by MIN_SHRINK, if possible.
-    # New capacity is a prime number.
     def _decrease_capacity(self) -> None:
         assert 0 <= self.MIN_SHRINK < 1
-        new_capacity = floor(self.capacity * (1.0 - self.MIN_SHRINK))
-        new_capacity = self._prev_prime(new_capacity)
-        min_capacity = len(self) + 1
-        if new_capacity < min_capacity:
-            new_capacity = self._next_prime(min_capacity)
-        # Possible that the new capacity ends up greater than the old due to distribution of primes and whatnot.
-        if new_capacity < self.capacity:
-            self._set_capacity(new_capacity)
+        new_capacity = floor(self._capacity * (1.0 - self.MIN_SHRINK))
+        new_capacity = max(new_capacity, 1)
+        self._set_capacity(new_capacity)
 
     # Resizes the current array and rehashes all key, value pairs back into it.
-    # new_size must be >= the number of key, value pairs stored.
     def _set_capacity(self, new_capacity: int) -> None:
-        assert new_capacity >= len(self)
         old_array = self._array
         self._array = Array(new_capacity)
-        self._used = 0
+        self._size = 0
         for i in range(new_capacity):
-            self._array[i] = self._Entry()
-        for entry in old_array:
-            if entry.state == self._Entry.USED:
+            self._array[i] = SinglyLinkedList()
+        for chain in old_array:
+            for entry in chain:
                 self._put(entry.key, entry.value)
 
-    @staticmethod
-    def _hash(key: Hashable, array_size: int) -> int:
-        return HashTable._raw_hash(key) % array_size
-
-    @staticmethod
-    def _raw_hash(key: Hashable) -> int:
+    def _hash(self, key: Hashable, array_size: int) -> int:
         # Use custom hash function for strings (to show that I can implement a hash function),
         # but otherwise use built-in hash so we don't unnecessarily restrict the hash table to only strings.
         # (Unrealistic to re-implement hash functions for every possible Python type.)
@@ -227,45 +180,4 @@ class HashTable(Generic[K, V]):
             hasher = str_hash
         else:
             hasher = hash
-        return hasher(key)
-
-    @staticmethod
-    def _step_hash(key: Hashable, array_size: int) -> int:
-        # I don't think this really matters too much.
-        return max(1, (33 * abs(HashTable._raw_hash(key))) % array_size)
-
-    # Returns the smallest prime larger than x.
-    # For x < 2, returns 2.
-    @staticmethod
-    def _next_prime(x: int) -> int:
-        if x < 2:
-            res = 2
-        else:
-            x += 1
-            if x % 2 == 0:
-                x += 1
-            res = next(filter(HashTable._is_prime, count(x, 2)))
-        return res
-
-    # Returns the largest prime smaller than x.
-    # However for x < 2, returns 2.
-    @staticmethod
-    def _prev_prime(x: int) -> int:
-        if x <= 3:
-            res = 2
-        else:
-            x -= 1
-            if x % 2 == 0:
-                x -= 1
-            res = next(filter(HashTable._is_prime, count(x, -2)))
-        return res
-
-    # Checks if x is a prime number.
-    # For efficiency, only defined for x > 2.
-    @staticmethod
-    def _is_prime(x: int) -> bool:
-        assert x > 2
-        res = True
-        for i in takewhile(lambda _: res, range(2, 1 + ceil(sqrt(x)))):
-            res = x % i != 0
-        return res
+        return hasher(key) % array_size

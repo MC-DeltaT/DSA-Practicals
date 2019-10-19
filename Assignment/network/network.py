@@ -19,9 +19,9 @@ class Person:
         self._network = network
         self._id = id
         self._posts: SinglyLinkedList["Post"] = SinglyLinkedList()
-        self._followers: Set["Person"] = Set(network._expected_people)
-        self._following: Set["Person"] = Set(network._expected_people)
-        self._liked_posts: Set["Post"] = Set(network._expected_posts)
+        self._followers: Set["Person"] = Set(capacity=network._expected_people, load_factor=network._hashtable_load)
+        self._following: Set["Person"] = Set(capacity=network._expected_people, load_factor=network._hashtable_load)
+        self._liked_posts: Set["Post"] = Set(capacity=network._expected_posts, load_factor=network._hashtable_load)
 
     @property
     def name(self) -> str:
@@ -59,7 +59,7 @@ class Person:
     def liked_post_count(self) -> int:
         return len(self._liked_posts)
 
-    def make_post(self, text: str, clickbait_factor: Optional[int] = 1) -> "Post":
+    def make_post(self, text: str, clickbait_factor: int = 1) -> "Post":
         post = Post(self, random.randrange(2 ** 32), text, clickbait_factor)
         self._posts.insert_first(post)
         return post
@@ -129,8 +129,7 @@ class Person:
 
 
 class Post:
-    def __init__(self, poster: Person, id: int, text: str,
-                 clickbait_factor: Optional[int] = 1) -> None:
+    def __init__(self, poster: Person, id: int, text: str, clickbait_factor: int = 1) -> None:
         self._poster = poster
         self._id = id
         self._text = text
@@ -195,11 +194,14 @@ class Post:
 class SocialNetwork:
     # expected_people: expected total number of people to be present in the network.
     # expected_post: expected total number of posts to be present in the network.
+    # hashtable_load: the starting load factor for hash tables used.
     # (These are solely for performance optimisation.)
-    def __init__(self, expected_people: int, expected_posts: int) -> None:
-        self._expected_people = max(expected_people, 1)
-        self._expected_posts = max(expected_posts, 1)
-        self._people: HashTable[str, Person] = HashTable(self._expected_people)
+    def __init__(self, expected_people: Optional[int] = None, expected_posts: Optional[int] = None,
+                 hashtable_load: Optional[int] = None) -> None:
+        self._expected_people = expected_people
+        self._expected_posts = expected_posts
+        self._hashtable_load = hashtable_load
+        self._people: HashTable[str, Person] = HashTable(capacity=self._expected_people, load_factor=hashtable_load)
         self._post_count = 0
 
     @property

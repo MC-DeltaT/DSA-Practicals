@@ -1,6 +1,6 @@
 from .hash_table import HashTable
 
-from typing import Generic, Hashable, Iterator, Optional, TypeVar
+from typing import Generic, Hashable, Iterator, TypeVar
 
 
 __all__ = [
@@ -12,10 +12,9 @@ T = TypeVar("T", bound=Hashable)
 
 
 class Set(Generic[T]):
-    # As this set is implemented with a hashtable, capacity indicates the initial
-    # number of items able to be stored in that hashtable.
-    def __init__(self, capacity: Optional[int] = 1000) -> None:
-        self._hashtable: HashTable[T, None] = HashTable(capacity)
+    # As this set is implemented with a hashtable, all constructor arguments are passed through to it.
+    def __init__(self, *args, **kwargs) -> None:
+        self._hashtable: HashTable[T, None] = HashTable(*args, **kwargs)
 
     # Adds an item to the set, if it doesn't already exist.
     # Returns a bool indicating if the key was new.

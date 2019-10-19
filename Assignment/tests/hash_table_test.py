@@ -21,32 +21,6 @@ class HashTableTest(TestCase):
         # Make sure capacity is low enough to trigger resizes.
         self._hashtable = HashTable(self.TEST_SIZE // 10)
 
-    def test_next_prime(self) -> None:
-        # Assert next prime from non-prime is correct.
-        for x, y in [(1, 2), (4, 5), (6, 7), (8, 11), (9, 11), (10, 11), (12, 13), (14, 17), (15, 17), (16, 17), (18, 19)]:
-            self.assertEqual(y, HashTable._next_prime(x))
-
-        # Assert next prime from prime is correct.
-        for x, y in [(2, 3), (3, 5), (5, 7), (7, 11), (11, 13), (13, 17), (17, 19)]:
-            self.assertEqual(y, HashTable._next_prime(x))
-
-        # Assert out-of-range numbers are handled correctly.
-        for x in range(-20, 2):
-            self.assertEqual(2, HashTable._next_prime(x))
-
-    def test_prev_prime(self) -> None:
-        # Assert previous prime from non-prime is correct.
-        for x, y in [(4, 3), (6, 5), (8, 7), (9, 7), (10, 7), (12, 11), (14, 13), (15, 13), (16, 13), (18, 17), (19, 17)]:
-            self.assertEqual(y, HashTable._prev_prime(x))
-
-        # Assert previous prime from prime is correct.
-        for x, y in [(2, 2), (3, 2), (5, 3), (7, 5), (11, 7), (13, 11), (17, 13), (19, 17)]:
-            self.assertEqual(y, HashTable._prev_prime(x))
-
-        # Assert out-of-range numbers are handled correctly.
-        for x in range(-20, 2):
-            self.assertEqual(2, HashTable._next_prime(x))
-
     def test_set_get_contains(self) -> None:
         keys = Array(random.sample(range(self.TEST_SIZE), self.TEST_SIZE))
 

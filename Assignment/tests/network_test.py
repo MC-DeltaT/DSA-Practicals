@@ -14,7 +14,7 @@ class SocialNetworkTest(TestCase):
     TEST_SIZE = 200
 
     def setUp(self) -> None:
-        self._network = SocialNetwork(self.TEST_SIZE, self.TEST_SIZE)
+        self._network = SocialNetwork()
 
     def test_add_person(self) -> None:
         people = SinglyLinkedList()
