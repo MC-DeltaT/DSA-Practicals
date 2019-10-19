@@ -102,7 +102,7 @@ class Person:
         return self.name
 
     def __repr__(self) -> str:
-        return f"Person(name={self._name})"
+        return f"Person(name={self._name}, id={self._id})"
 
     def _delete(self) -> None:
         # Set attributes to None for debugging purposes and to make sure GC collects everything.
@@ -160,7 +160,7 @@ class Post:
         return res
 
     @property
-    def likers(self) -> SizedIterable[Person]:
+    def liked_by(self) -> SizedIterable[Person]:
         return SizedIterable(self._liked_by, self.like_count)
 
     @property
@@ -178,7 +178,7 @@ class Post:
         return f"{self.poster.name} - {self.short_text}"
 
     def __repr__(self) -> str:
-        return f"Post(poster={self._poster}, id={self._id}, text={self._text})"
+        return f"Post(poster={self._poster}, id={self._id}, text={self._text}, clickbait_factor={self._clickbait})"
 
     def _delete(self) -> None:
         for person in self._liked_by:
@@ -226,9 +226,14 @@ class SocialNetwork:
         self._people[name] = person
         return person
 
+    # person should not be used after deletion.
     def delete_person(self, person: Person) -> None:
-        del self._people[person.name]
-        person._delete()
+        try:
+            del self._people[person.name]
+        except KeyError:
+            raise ValueError(f"{person} doesn't exist in network.")
+        else:
+            person._delete()
 
     def find_person(self, name: str) -> Person:
         try:

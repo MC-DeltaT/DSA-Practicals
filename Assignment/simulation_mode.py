@@ -143,7 +143,7 @@ def log_timestep(network: SocialNetwork, timestep: int, file) -> None:
 
     file.write("  Post likes:\n")
     for post in network.posts:
-        likers_str = ", ".join(map(str, post.likers))
+        likers_str = ", ".join(map(str, post.liked_by))
         file.write(f"    {post} : {likers_str}\n")
 
     file.write("\n")

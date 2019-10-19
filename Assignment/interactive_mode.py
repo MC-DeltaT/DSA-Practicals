@@ -172,7 +172,7 @@ def display_network(network: SocialNetwork) -> None:
         print("Post likes:")
         if network.post_count:
             for post in network.posts:
-                likers_str = ", ".join(map(str, post.likers))
+                likers_str = ", ".join(map(str, post.liked_by))
                 print(f"  {post} : {likers_str}")
         else:
             print("<no posts>")
