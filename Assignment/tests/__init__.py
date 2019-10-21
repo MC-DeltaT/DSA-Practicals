@@ -1,3 +1,4 @@
+from .array_test import *
 from .hash_table_test import *
 from .network_test import *
 from .set_test import *
