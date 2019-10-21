@@ -16,6 +16,7 @@ Main important files:
     netfile_example.txt - example valid network file (sourced from assignment specification).
     Report.pdf - investigation and report.
     SocialSim.py - main application entry point.
+    UML.png - UML diagram.
     unit_test.py - unit test entry point.
 
 Please see "Documentation.pdf" for a more in-depth explanation of the project.
