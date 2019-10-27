@@ -10,13 +10,11 @@ from typing import Tuple
 
 
 # If true, enables logging of network state and statistics each timestep.
-# (Probably want this off if stat mode is enabled below.)
-# TODO: set to true for submission.
+# (Typically want this on for "normal" operation.)
 LOGS_ENABLED = True
 
 # If true, enables logging of additional network statistics for performance analysis.
-# (Mainly for my own experimentation, feel free to ignore.)
-# TODO: set to false for submission.
+# (Mainly for the investigation and report, feel free to ignore.)
 STATS_ENABLED = False
 
 # Default parameters for the network's hash tables.
