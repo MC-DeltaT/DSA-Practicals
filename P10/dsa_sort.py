@@ -1,4 +1,3 @@
-from math import ceil, log10
 from typing import Callable, MutableSequence, Tuple
 
 import numpy

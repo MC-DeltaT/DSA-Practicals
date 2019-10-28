@@ -29,7 +29,7 @@ class DSASortTest(unittest.TestCase):
     def test_quicksort_3w(self) -> None:
         self.sortTester(quicksort_3w)
 
-    def test_shellsort(self) -> None:
+    def test_shell_sort(self) -> None:
         self.sortTester(shell_sort)
     
     def test_counting_sort(self) -> None:
